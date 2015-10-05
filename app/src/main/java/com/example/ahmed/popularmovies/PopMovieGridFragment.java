@@ -86,7 +86,7 @@ public class PopMovieGridFragment extends Fragment {
 
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
-        private final String MY_API_KEY = "";
+        private String MY_API_KEY;
         private final String LOG_TAG = PopMovieGridFragment.FetchMoviesTask.class.getSimpleName();
 
 
