@@ -86,8 +86,9 @@ public class PopMovieGridFragment extends Fragment {
 
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
-        private final String MY_API_KEY = "";
+        private String MY_API_KEY = getActivity().getString(string.api_key);
         private final String LOG_TAG = PopMovieGridFragment.FetchMoviesTask.class.getSimpleName();
+
 
 
         /**
@@ -157,7 +158,12 @@ public class PopMovieGridFragment extends Fragment {
                 String API_KEY_PARAM = "api_key";
                 String SORT_BY_PARAM = "sort_by";
 
-
+                if(this.MY_API_KEY == null)
+                {
+                    this.MY_API_KEY = "";
+                    if(this.MY_API_KEY.equals(""))
+                        Log.e(LOG_TAG,"api_key.xml not found please enter your own");
+                }
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY_PARAM, this.MY_API_KEY)
                         .appendQueryParameter(SORT_BY_PARAM, params[0])
