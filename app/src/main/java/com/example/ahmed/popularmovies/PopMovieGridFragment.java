@@ -12,12 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
-
-import com.example.ahmed.popularmovies.R.id;
-import com.example.ahmed.popularmovies.R.layout;
-import com.example.ahmed.popularmovies.R.string;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,16 +38,16 @@ public class PopMovieGridFragment extends Fragment {
     public PopMovieGridFragment() {
     }
     public void onStart() {
-        this.updateMovies();
+        updateMovies();
         super.onStart();
     }
 
     private boolean updateMovies() {
-        PopMovieGridFragment.FetchMoviesTask moviesTask = new PopMovieGridFragment.FetchMoviesTask();
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
-        this.mGridData.clear();
+        FetchMoviesTask moviesTask = new FetchMoviesTask();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mGridData.clear();
 //        TODO sort popular movies by their ratings
-        String sort = sharedPref.getString(this.getString(string.pref_sorting_key), this.getString(string.pop_desc));
+        String sort = sharedPref.getString(getString(R.string.pref_sorting_key), getString(R.string.pop_desc));
 
 
 //        Log.v(LOG_TAG, "Loc from SharedPref: "pop + location + "\tUnits from SharedPref: " + units + "\tmetricV: " + getString(R.string.metricV));
@@ -62,22 +57,22 @@ public class PopMovieGridFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(layout.fragment_main, container, false);
-        GridView gridView = (GridView) rootView.findViewById(id.gridview_movies);
-        this.mGridData = new ArrayList<MyMovie>();
-        this.mMoviesAdapter =
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
+        mGridData = new ArrayList<MyMovie>();
+        mMoviesAdapter =
                 new GridViewAdapter(
-                        this.getActivity(), // The current context (this activity)
-                        layout.movie_tiles, // The name of the layout ID.
-                        this.mGridData);
-        gridView.setAdapter(this.mMoviesAdapter);
-        gridView.setOnItemClickListener(new OnItemClickListener() {
+                        getActivity(), // The current context (this activity)
+                        R.layout.movie_tiles, // The name of the layout ID.
+                        mGridData);
+        gridView.setAdapter(mMoviesAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                MyMovie movie = PopMovieGridFragment.this.mMoviesAdapter.getItem(position);
-                Intent detailActivityIntent = new Intent(PopMovieGridFragment.this.getActivity(), DetailActivity.class);
+                MyMovie movie = mMoviesAdapter.getItem(position);
+                Intent detailActivityIntent = new Intent(getActivity(), DetailActivity.class);
                 detailActivityIntent.putExtras(movie.bundleMovie());
-                PopMovieGridFragment.this.startActivity(detailActivityIntent);
+                startActivity(detailActivityIntent);
             }
         });
         return rootView;
@@ -86,9 +81,9 @@ public class PopMovieGridFragment extends Fragment {
 
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
-        private final String MY_API_KEY = getActivity().getString(string.api_key);
+        private final String MY_API_KEY = "0d2f78cd5f086e8d35e0274952749495d";
 
-        private final String LOG_TAG = PopMovieGridFragment.FetchMoviesTask.class.getSimpleName();
+        private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
 
 
@@ -106,7 +101,7 @@ public class PopMovieGridFragment extends Fragment {
 
 
             JSONObject movieJson = new JSONObject(json);
-            Log.v(this.LOG_TAG, "movieJson VAL<>: " + movieJson);
+            Log.v(LOG_TAG, "movieJson VAL<>: " + movieJson);
             String OWM_RESULT = "results";
             JSONArray movieArray = movieJson.getJSONArray(OWM_RESULT);
 //            Log.v(LOG_TAG, "movieArray VAL<>: " + movieArray.toString());
@@ -128,12 +123,12 @@ public class PopMovieGridFragment extends Fragment {
                                 , movieJSON.getString(OWM_USER_RATING)
                                 , movieJSON.getString(OWM_RELEASE_DATE)
                         );
-                PopMovieGridFragment.this.mGridData.add(movie);
+                mGridData.add(movie);
 
 
 //                Log.v(LOG_TAG, "Complete img path????????????????????"+ movies.get(i).getImageUrl());
             }
-        Log.v(this.LOG_TAG, "mGridData> "+ PopMovieGridFragment.this.mGridData);
+            Log.v(LOG_TAG, "mGridData> " + mGridData);
         }
 
         @Override
@@ -159,7 +154,7 @@ public class PopMovieGridFragment extends Fragment {
                 String API_KEY_PARAM = "api_key";
                 String SORT_BY_PARAM = "sort_by";
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY_PARAM, this.MY_API_KEY)
+                        .appendQueryParameter(API_KEY_PARAM, MY_API_KEY)
                         .appendQueryParameter(SORT_BY_PARAM, params[0])
                         .build();
 
@@ -194,7 +189,7 @@ public class PopMovieGridFragment extends Fragment {
                 }
                 movieJsonStr = buffer.toString();
             } catch (IOException e) {
-                Log.e(this.LOG_TAG, "Error ", e);
+                Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 return null;
@@ -206,15 +201,15 @@ public class PopMovieGridFragment extends Fragment {
                     try {
                         reader.close();
                     } catch (IOException e) {
-                        Log.e(this.LOG_TAG, "Error closing stream", e);
+                        Log.e(LOG_TAG, "Error closing stream", e);
                     }
                 }
             }
 
             try {
-                this.getMoviesFromJsonStr(movieJsonStr);
+                getMoviesFromJsonStr(movieJsonStr);
             } catch (JSONException e) {
-                Log.e(this.LOG_TAG, e.getMessage(), e);
+                Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
             }
 
@@ -223,7 +218,7 @@ public class PopMovieGridFragment extends Fragment {
         }
         @Override
         protected void onPostExecute(Void v) {
-            PopMovieGridFragment.this.mMoviesAdapter.setGridData(PopMovieGridFragment.this.mGridData);
+            mMoviesAdapter.setGridData(mGridData);
                 // New data is back from the server.  Hooray!
         }
     }
