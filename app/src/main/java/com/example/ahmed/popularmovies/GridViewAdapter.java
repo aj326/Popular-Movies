@@ -8,21 +8,20 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
-import com.example.ahmed.popularmovies.R.id;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
+
 /*
     inspired by http://javatechig.com/android/download-and-display-image-in-android-gridview
  */
-public class GridViewAdapter extends ArrayAdapter<MyMovie> {
+public class GridViewAdapter extends ArrayAdapter<Movie> {
 
     private final Context mContext;
     private final int layoutResourceId;
-    private List<MyMovie> mGridData = new ArrayList<MyMovie>();
+    private ArrayList<Movie> mGridData = new ArrayList<>();
 
-    public GridViewAdapter(Context mContext, int layoutResourceId, List<MyMovie> mGridData) {
+    public GridViewAdapter(Context mContext, int layoutResourceId, ArrayList<Movie> mGridData) {
         super(mContext, layoutResourceId, mGridData);
         this.layoutResourceId = layoutResourceId;
         this.mContext = mContext;
@@ -34,7 +33,7 @@ public class GridViewAdapter extends ArrayAdapter<MyMovie> {
      * Updates grid data and refresh grid items.
      * @param mGridData
      */
-    public void setGridData(List<MyMovie> mGridData) {
+    public void setGridData(ArrayList<Movie> mGridData) {
         this.mGridData = mGridData;
         this.notifyDataSetChanged();
     }
@@ -45,14 +44,14 @@ public class GridViewAdapter extends ArrayAdapter<MyMovie> {
         ImageView imageView;
 
         if (row == null) {
-            LayoutInflater inflater = ((Activity) this.mContext).getLayoutInflater();
-            row = inflater.inflate(this.layoutResourceId, parent, false);
-            imageView = (ImageView) row.findViewById(id.movie_tile);
+            LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
+            row = inflater.inflate(layoutResourceId, parent, false);
+            imageView = (ImageView) row.findViewById(R.id.movie_tile);
             row.setTag(imageView);
         } else {
             imageView = (ImageView) row.getTag();
         }
-        Picasso.with(this.mContext).load(this.mGridData.get(position).getImgUrl())
+        Picasso.with(mContext).load(this.mGridData.get(position).getImgUrl())
                 .into(imageView);
         return row;
     }

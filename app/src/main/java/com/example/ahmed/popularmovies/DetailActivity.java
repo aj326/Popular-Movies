@@ -30,8 +30,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.ahmed.popularmovies.R.id;
-import com.example.ahmed.popularmovies.R.layout;
 import com.squareup.picasso.Picasso;
 
 
@@ -40,10 +38,10 @@ public class DetailActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(layout.activity_detail);
+        setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
-            this.getSupportFragmentManager().beginTransaction()
-                    .add(id.container, new DetailActivity.DetailFragment())
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, new DetailFragment())
                     .commit();
         }
     }
@@ -52,7 +50,7 @@ public class DetailActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        this.getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(menu.menu_main, menu);
         return true;
     }
 
@@ -64,8 +62,8 @@ public class DetailActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            this.startActivity(new Intent(this, SettingsActivity.class));
+        if (id == id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -77,22 +75,22 @@ public class DetailActivity extends ActionBarActivity {
      */
     public static class DetailFragment extends Fragment {
 
-        private static final String LOG_TAG = DetailActivity.DetailFragment.class.getSimpleName();
+        private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
 
 
         public DetailFragment() {
-            this.setHasOptionsMenu(true);
+            setHasOptionsMenu(true);
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            View rootView = inflater.inflate(layout.fragment_detail, container, false);
+            View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             // The detail Activity called via intent.  Inspect the intent for forecast data.
-            Intent intent = this.getActivity().getIntent();
+            Intent intent = getActivity().getIntent();
             if (intent != null) {
                 Bundle bundle = intent.getExtras();
                 if(bundle != null){
@@ -101,16 +99,16 @@ public class DetailActivity extends ActionBarActivity {
 //                    bundle.putString("plot", this.plot);
 //                    bundle.putString("rating", this.rating);
 //                    bundle.putString("date", this.date);
-                        ((TextView) rootView.findViewById(id.movie_title))
+                    ((TextView) rootView.findViewById(R.id.movie_title))
                         .setText(bundle.getString("title"));
-                    ((TextView) rootView.findViewById(id.rating))
+                    ((TextView) rootView.findViewById(R.id.rating))
                             .setText(bundle.getString("rating"));
-                    ((TextView) rootView.findViewById(id.plot))
+                    ((TextView) rootView.findViewById(R.id.plot))
                             .setText(bundle.getString("plot"));
-                    ((TextView) rootView.findViewById(id.movie_year))
+                    ((TextView) rootView.findViewById(R.id.movie_year))
                             .setText(bundle.getString("date").split("-")[0]);
-                    Picasso.with(this.getContext()).load(bundle.getString("imgUrl"))
-                            .into((ImageView) rootView.findViewById(id.poster));
+                    Picasso.with(getContext()).load(bundle.getString("imgUrl"))
+                            .into((ImageView) rootView.findViewById(R.id.poster));
 
 
 
@@ -136,7 +134,7 @@ public class DetailActivity extends ActionBarActivity {
 //            if (mShareActionProvider != null ) {
 //                mShareActionProvider.setShareIntent(createShareForecastIntent());
 //            } else {
-                Log.d(DetailFragment.LOG_TAG, "Share Yet to be Implemented!");
+            Log.d(LOG_TAG, "Share Yet to be Implemented!");
 //            }
         }
 
