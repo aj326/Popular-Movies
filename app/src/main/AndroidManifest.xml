@@ -35,6 +35,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.ahmed.popularmovies.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.example.ahmed.popularmovies.schematic.MoviesProvider"
+            android:name=".schematic.generated.MoviesProvider"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

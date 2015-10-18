@@ -1,5 +1,5 @@
 
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

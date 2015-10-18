@@ -8,6 +8,7 @@ import android.view.MenuItem;
 
 import com.example.ahmed.popularmovies.R.id;
 import com.example.ahmed.popularmovies.R.layout;
+import com.facebook.stetho.Stetho;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,6 +16,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(layout.activity_main);
+        Stetho.initialize(
+                Stetho.newInitializerBuilder(this)
+                        .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                        .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
+                        .build());
         if (savedInstanceState == null) {
             this.getSupportFragmentManager().beginTransaction()
                     .add(id.container, new PopMovieGridFragment())

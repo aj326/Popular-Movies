@@ -1,24 +1,37 @@
 package com.example.ahmed.popularmovies;
 
-import android.content.Intent;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderOperation.Builder;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
 
+import com.example.ahmed.popularmovies.rest.Movie;
+import com.example.ahmed.popularmovies.rest.MovieCursorAdapter;
+import com.example.ahmed.popularmovies.rest.MoviesFromTMDB;
+import com.example.ahmed.popularmovies.rest.TMDBFetchService;
+import com.example.ahmed.popularmovies.schematic.MovieColumns;
+import com.example.ahmed.popularmovies.schematic.MoviesProvider;
+import com.example.ahmed.popularmovies.schematic.MoviesProvider.Movies;
+import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.okhttp.ResponseBody;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import retrofit.Call;
@@ -34,45 +47,67 @@ import retrofit.Retrofit;
  * TODO Progress Bar
  */
 
-public class PopMovieGridFragment extends Fragment {
+public class PopMovieGridFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
+    private static final int CURSOR_LOADER_ID = 0;
     private final String BASE_URL = "http://api.themoviedb.org";
-    private GridViewAdapter mMoviesAdapter;
-    private boolean already_queried;
-    private String sort;
-    private List<Movie> mGridData;
+    private MovieCursorAdapter mMoviesAdapter;
+
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d(LOG_TAG,getActivity().getContentResolver().toString());
+        Cursor c = getActivity().getContentResolver().query(MoviesProvider.Movies.CONTENT_URI,
+                null, null, null, null);
+        Log.i(LOG_TAG, "cursor count: " + c.getCount());
+        if (c == null || c.getCount() == 0) {
+            insertData();
+        }
+
+
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+        super.onActivityCreated(savedInstanceState);
+
+
+    }
+        @Override
     public void onResume() {
-        this.updateMovies();
-        super.onResume();
+            super.onResume();
+            Log.d(LOG_TAG, "resume called");
+            getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+    }
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args){
+        return new CursorLoader(getActivity(), MoviesProvider.Movies.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
     }
 
-    public void updateMovies() {
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data){
+        mMoviesAdapter.swapCursor(data);
+
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader){
+        mMoviesAdapter.swapCursor(null);
+    }
+
+
+    public void insertData() {
+        Log.d(LOG_TAG, "insert");
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
         final String SORT_KEY = sharedPref.getString(this.getString(R.string.pref_sorting_key), this.getString(R.string.pop_desc));
-        if (this.already_queried) {
-//            Log.d(LOG_TAG, already_queried + " SortKey " + SORT_KEY.equals(sort));
-            if (!this.sort.equals(SORT_KEY)) {
-                if (SORT_KEY.equals(this.getString(R.string.pop_desc))) {
 
-                    Collections.sort(this.mGridData, new CompareByPop());
-//                    Log.d(LOG_TAG, "compare by Pop: " + mGridData);
-
-                } else {
-                    Collections.sort(this.mGridData, new CompareByRating());
-//                    Log.d(LOG_TAG, "compare by Rating: " + mGridData);
-                }
-            }
-            this.mMoviesAdapter.setGridData((ArrayList<Movie>) this.mGridData);
-            return;
-        }
-        this.sort = SORT_KEY;
         Retrofit retrofit = new Retrofit.Builder().baseUrl(this.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+        retrofit.client().networkInterceptors().add(new StethoInterceptor());
         TMDBFetchService service = retrofit.create(TMDBFetchService.class);
         Call<MoviesFromTMDB> call = service.movieList(SORT_KEY);
-        this.already_queried = true;
         call.enqueue(new Callback<MoviesFromTMDB>() {
             @Override
             public void onResponse(Response<MoviesFromTMDB> response, Retrofit retrofit) {
@@ -87,13 +122,34 @@ public class PopMovieGridFragment extends Fragment {
                         e.printStackTrace();
                     }
                 } else {
-                    PopMovieGridFragment.this.mGridData.clear();
-                    PopMovieGridFragment.this.mGridData.addAll(response.body().getMovies());
-                    if (SORT_KEY.equals(PopMovieGridFragment.this.getString(R.string.rate_desc))) {
-                        Collections.sort(PopMovieGridFragment.this.mGridData, new CompareByRating());
+                    MoviesFromTMDB moviesFromTMDB = response.body();
+                    List<Movie> movies = moviesFromTMDB.getMovies();
+                    ArrayList<ContentProviderOperation> batchOperations = new ArrayList<ContentProviderOperation>(moviesFromTMDB.getMovies().size());
+                    for (Movie movie : movies) {
+                        Builder builder = ContentProviderOperation.newInsert(
+                                Movies.CONTENT_URI);
+                        builder.withValue(MovieColumns.TITLE, movie.getTitle());
+                        builder.withValue(MovieColumns.POPULARITY, movie.getPopularity());
+                        builder.withValue(MovieColumns.RATING, movie.getVoteAverage());
+                        builder.withValue(MovieColumns.RELEASE_DATE, movie.getReleaseDate());
+//                    builder.withValue(MovieColumns.REVIEWS, movie.ge());
+                        builder.withValue(MovieColumns.PLOT, movie.getOverview());
+                        builder.withValue(MovieColumns.POSTER, movie.getImgUrl());
+                        builder.withValue(MovieColumns.TRAILERS, "TEMP");
+                        builder.withValue(MovieColumns.REVIEWS, "TEMP");
+                        builder.withValue(MovieColumns.IS_FAVORITE, 0);
+
+
+
+                        batchOperations.add(builder.build());
                     }
-                    PopMovieGridFragment.this.mMoviesAdapter.setGridData((ArrayList<Movie>) PopMovieGridFragment.this.mGridData);
-//                    Log.d("@onResponse", String.valueOf(mMoviesAdapter.getCount()));
+
+                    try {
+                        getActivity().getContentResolver().applyBatch(MoviesProvider.AUTHORITY, batchOperations);
+                    } catch (RemoteException | OperationApplicationException e) {
+                        Log.e(LOG_TAG, "Error applying batch insert", e);
+                    }
+
                 }
             }
 
@@ -104,51 +160,27 @@ public class PopMovieGridFragment extends Fragment {
             }
         });
         return;
-//        Log.d("Done Update Movies: ", mGridData.toString());
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
-        this.mGridData = new ArrayList<>();
+        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
+        recyclerView.setLayoutManager(
+                new GridLayoutManager(recyclerView.getContext(),2)
+        );
 
         this.mMoviesAdapter =
-                new GridViewAdapter(
-                        this.getActivity(), // The current context (this activity)
-                        R.layout.movie_tiles, // The name of the layout ID.
-                        (ArrayList<Movie>) this.mGridData);
+                new MovieCursorAdapter(
+                        getActivity(), // The current context (this activity)
+                        null);
 
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Movie movie = PopMovieGridFragment.this.mMoviesAdapter.getItem(position);
-                Intent detailActivityIntent = new Intent(PopMovieGridFragment.this.getActivity(), DetailActivity.class);
-                detailActivityIntent.putExtras(movie.bundleMovie());
-                PopMovieGridFragment.this.startActivity(detailActivityIntent);
-            }
-        });
-        this.updateMovies();
-        gridView.setAdapter(this.mMoviesAdapter);
+        recyclerView.setAdapter(this.mMoviesAdapter);
         return rootView;
-
     }
-
-    public class CompareByRating implements Comparator<Movie> {
-        @Override
-        public int compare(Movie lhs, Movie rhs) {
-            return rhs.getVoteCount().compareTo(lhs.getVoteCount());
-        }
-    }
-
-    public class CompareByPop implements Comparator<Movie> {
-        @Override
-        public int compare(Movie lhs, Movie rhs) {
-            return rhs.getPopularity().compareTo(lhs.getPopularity());
-        }
-    }
-
 
 
 }
