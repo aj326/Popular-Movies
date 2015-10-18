@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tile_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".PopMovieGridFragment">
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent" android:layout_height="fill_parent"
-    android:id="@+id/movie_tile"
-    android:scaleType="fitXY"
+    android:id="@id/poster"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:adjustViewBounds="true"
     android:minHeight="?android:attr/listPreferredItemHeight"
-    android:adjustViewBounds="true">
+    android:scaleType="fitXY" />
 
-</ImageView>
+    <CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@id/star"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignRight="@id/poster"
+
+        android:adjustViewBounds="true"
+        android:button="@android:drawable/btn_star_big_off"
+        android:checked="false"
+        android:clickable="true"
+        android:scaleType="center" />
+</RelativeLayout>

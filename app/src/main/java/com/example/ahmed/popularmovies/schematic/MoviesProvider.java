@@ -19,24 +19,23 @@ public final class MoviesProvider{
             "com.example.ahmed.popularmovies.schematic.MoviesProvider";
     static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
-    interface Path{
-        String MOVIES = "movies";
-        String ARCHIVED_MOVIES = "archived_movies";
-
-    }
-
-    private static Uri buildUri(String ... paths){
+    private static Uri buildUri(String... paths) {
         Builder builder = BASE_CONTENT_URI.buildUpon();
-        for (String path : paths){
+        for (String path : paths) {
             builder.appendPath(path);
         }
         return builder.build();
     }
+
+    interface Path {
+        String MOVIES = "movies";
+    }
+
     @TableEndpoint(table = MovieDatabase.MOVIES) public static class Movies{
         @ContentUri(
                 path = Path.MOVIES,
                 type = "vnd.android.cursor.dir/movie",
-                defaultSort = MovieColumns.POPULARITY + " ASC")
+                defaultSort = MovieColumns.POPULARITY + " DESC")
         public static final Uri CONTENT_URI = buildUri(Path.MOVIES);
 
         @InexactContentUri(

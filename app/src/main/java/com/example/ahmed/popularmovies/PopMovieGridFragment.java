@@ -1,5 +1,6 @@
 package com.example.ahmed.popularmovies;
 
+import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderOperation.Builder;
 import android.content.OperationApplicationException;
@@ -44,16 +45,18 @@ import retrofit.Retrofit;
 /**
  * A placeholder fragment containing a simple view.
  * <p/>
- * TODO Progress Bar
+ * TODO Sorting
+ * TODO Trailers, Reviews
+ * TODO Favorite
  */
 
 public class PopMovieGridFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
-    private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
     private static final int CURSOR_LOADER_ID = 0;
+    private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
     private final String BASE_URL = "http://api.themoviedb.org";
+    ProgressDialog mProgressDialog;
     private MovieCursorAdapter mMoviesAdapter;
-
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -101,13 +104,17 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
 
     public void insertData() {
         Log.d(LOG_TAG, "insert");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setMessage("Loading...");
+        mProgressDialog.show();
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
         final String SORT_KEY = sharedPref.getString(this.getString(R.string.pref_sorting_key), this.getString(R.string.pop_desc));
-
+        final int MAX_PAGES = 6;
         Retrofit retrofit = new Retrofit.Builder().baseUrl(this.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
         retrofit.client().networkInterceptors().add(new StethoInterceptor());
         TMDBFetchService service = retrofit.create(TMDBFetchService.class);
-        Call<MoviesFromTMDB> call = service.movieList(SORT_KEY);
+        for (int i = 1; i < MAX_PAGES; i++) {
+            Call<MoviesFromTMDB> call = service.movieList(i);
         call.enqueue(new Callback<MoviesFromTMDB>() {
             @Override
             public void onResponse(Response<MoviesFromTMDB> response, Retrofit retrofit) {
@@ -116,14 +123,17 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
                             retrofit.responseConverter(MoviesFromTMDB.class, new Annotation[0]);
                     try {
                         MoviesFromTMDB error = errorConverter.convert(response.errorBody());
-//                        Log.e("response", error.toString());
+                        Log.e("response", error.toString());
 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } else {
+                    if (mProgressDialog.isShowing())
+                        mProgressDialog.dismiss();
                     MoviesFromTMDB moviesFromTMDB = response.body();
                     List<Movie> movies = moviesFromTMDB.getMovies();
+                    Log.d("page: ", moviesFromTMDB.getPage().toString());
                     ArrayList<ContentProviderOperation> batchOperations = new ArrayList<ContentProviderOperation>(moviesFromTMDB.getMovies().size());
                     for (Movie movie : movies) {
                         Builder builder = ContentProviderOperation.newInsert(
@@ -132,7 +142,6 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
                         builder.withValue(MovieColumns.POPULARITY, movie.getPopularity());
                         builder.withValue(MovieColumns.RATING, movie.getVoteAverage());
                         builder.withValue(MovieColumns.RELEASE_DATE, movie.getReleaseDate());
-//                    builder.withValue(MovieColumns.REVIEWS, movie.ge());
                         builder.withValue(MovieColumns.PLOT, movie.getOverview());
                         builder.withValue(MovieColumns.POSTER, movie.getImgUrl());
                         builder.withValue(MovieColumns.TRAILERS, "TEMP");
@@ -155,12 +164,13 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
 
             @Override
             public void onFailure(Throwable t) {
+                if (mProgressDialog.isShowing())
+                    mProgressDialog.dismiss();
                 Log.getStackTraceString(t);
 
             }
         });
-        return;
-
+        }
 
     }
 
@@ -172,7 +182,7 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
         recyclerView.setLayoutManager(
                 new GridLayoutManager(recyclerView.getContext(),2)
         );
-
+        mProgressDialog = new ProgressDialog(getContext());
         this.mMoviesAdapter =
                 new MovieCursorAdapter(
                         getActivity(), // The current context (this activity)

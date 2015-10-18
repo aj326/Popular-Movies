@@ -17,8 +17,12 @@ package com.example.ahmed.popularmovies;
  */
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -73,14 +78,79 @@ public class DetailActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class DetailFragment extends Fragment {
+    public static class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
+        private static final int DETAIL_LOADER = 0;
 
 
         public DetailFragment() {
             setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onActivityCreated(Bundle savedInstanceState) {
+            getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+            super.onActivityCreated(savedInstanceState);
+        }
+
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Log.v(LOG_TAG, "In onCreateLoader");
+            Intent intent = getActivity().getIntent();
+            if (intent == null) {
+                return null;
+            }
+
+            // Now create and return a CursorLoader that will take care of
+            // creating a Cursor for the data being displayed.
+            return new CursorLoader(
+                    getActivity(),
+                    intent.getData(),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            Log.v(LOG_TAG, "In onLoadFinished");
+            if (!data.moveToFirst()) {
+                return;
+            }
+            ImageView poster = (ImageView) getView().findViewById(R.id.poster);
+            Picasso.with(getContext()).load(data.getString(COLUMNS.POSTER.ordinal()))
+                    .into(poster);
+
+            TextView title = (TextView) getView().findViewById(R.id.movie_title);
+            title.setText(data.getString(COLUMNS.TITLE.ordinal()));
+
+            getActivity().setTitle(data.getString(COLUMNS.TITLE.ordinal()));
+
+            TextView release_date = (TextView) getView().findViewById(R.id.movie_year);
+            release_date.setText(data.getString(COLUMNS.RELEASE_DATE.ordinal()));
+
+            TextView plot = (TextView) getView().findViewById(R.id.plot);
+            plot.setText(data.getString(COLUMNS.PLOT.ordinal()));
+
+            TextView rating = (TextView) getView().findViewById(R.id.rating);
+            rating.setText(data.getString(COLUMNS.RATING.ordinal()));
+
+            CheckBox starred = (CheckBox) getView().findViewById(R.id.star);
+            if (data.getInt(COLUMNS.IS_FAVORITE.ordinal()) == 1) {
+                Log.d("isFav", starred.isChecked() + "");
+                starred.setChecked(true);
+                starred.setButtonDrawable(android.R.drawable.btn_star_big_on);
+            }
+            // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
         }
 
         @Override
@@ -89,34 +159,11 @@ public class DetailActivity extends ActionBarActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-            // The detail Activity called via intent.  Inspect the intent for forecast data.
-            Intent intent = getActivity().getIntent();
-            if (intent != null) {
-                Bundle bundle = intent.getExtras();
-                if(bundle != null){
-//                    bundle.putString("imgUrl", this.imgUrl);
-//                    bundle.putString("title", this.title);
-//                    bundle.putString("plot", this.plot);
-//                    bundle.putString("rating", this.rating);
-//                    bundle.putString("date", this.date);
-                    ((TextView) rootView.findViewById(R.id.movie_title))
-                        .setText(bundle.getString("title"));
-                    ((TextView) rootView.findViewById(R.id.rating))
-                            .setText(bundle.getString("rating"));
-                    ((TextView) rootView.findViewById(R.id.plot))
-                            .setText(bundle.getString("plot"));
-                    ((TextView) rootView.findViewById(R.id.movie_year))
-                            .setText(bundle.getString("date").split("-")[0]);
-                    Picasso.with(getContext()).load(bundle.getString("imgUrl"))
-                            .into((ImageView) rootView.findViewById(R.id.poster));
-
-
-
-                }}
 
             return rootView;
         }
-//        TODO implement share
+
+        //        TODO implement share
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             // Inflate the menu; this adds items to the action bar if it is present.
@@ -134,9 +181,39 @@ public class DetailActivity extends ActionBarActivity {
 //            if (mShareActionProvider != null ) {
 //                mShareActionProvider.setShareIntent(createShareForecastIntent());
 //            } else {
-            Log.d(LOG_TAG, "Share Yet to be Implemented!");
 //            }
         }
+
+        /*
+    @DataType(DataType.Type.TEXT) @NotNull
+    public static final String POSTER = "poster";
+
+    @DataType(DataType.Type.TEXT) @NotNull
+    public static final String PLOT = "plot";
+
+    @DataType(DataType.Type.REAL) @NotNull
+    public static final String RATING = "rating";
+
+    @DataType(DataType.Type.REAL) @NotNull
+    public static final String POPULARITY = "popularity";
+
+    @DataType(DataType.Type.TEXT) @NotNull
+    public static final String RELEASE_DATE = "release_date";
+
+    @DataType(DataType.Type.TEXT) @NotNull
+    public static final String TRAILERS = "trailers";
+
+    @DataType(DataType.Type.TEXT) @NotNull
+    public static final String REVIEWS = "reviews";
+
+    @DataType(DataType.Type.INTEGER) @NotNull
+    public static final String IS_FAVORITE = "is_favorite";
+         */
+        private enum COLUMNS {
+            _ID, TITLE, POSTER, PLOT, RATING, POPULARITY, RELEASE_DATE, TRAILERS, REVIEWS, IS_FAVORITE
+        }
+    }
+}
 
 /*
         private Intent createShareForecastIntent() {
@@ -148,5 +225,5 @@ public class DetailActivity extends ActionBarActivity {
             return shareIntent;
         }
 */
-    }
-}
+
+

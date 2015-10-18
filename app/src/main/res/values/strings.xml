@@ -7,7 +7,7 @@
     <string name="rate_desc">vote_average.desc</string>
     <string name="popularity">Popularity</string>
     <string name="rating">Rating</string>
-    <string name="title_activity_detail">ActivityDetail</string>
+    <string name="title_activity_detail">Movie Details</string>
     <string name="rating_label">Rating</string>
     <string name="year_label">Year</string>
     <string name="plot_label">Plot</string>
