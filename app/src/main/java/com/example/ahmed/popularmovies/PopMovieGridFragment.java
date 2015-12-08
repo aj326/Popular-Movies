@@ -21,7 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.ahmed.popularmovies.rest.Movie;
-import com.example.ahmed.popularmovies.rest.MovieCursorAdapter;
+import com.example.ahmed.popularmovies.rest.CursorMovieAdapter;
 import com.example.ahmed.popularmovies.rest.MoviesFromTMDB;
 import com.example.ahmed.popularmovies.rest.TMDBFetchService;
 import com.example.ahmed.popularmovies.schematic.MovieColumns;
@@ -44,25 +44,30 @@ import retrofit.Retrofit;
 
 /**
  * A placeholder fragment containing a simple view.
- * <p/>
+ * <p>
  * TODO Sorting
  * TODO Trailers, Reviews
  * TODO Favorite
+ * TODO restore scroll position in tablet
  */
 
-public class PopMovieGridFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
-
+public class PopMovieGridFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor> {
+    private int mPosition;
+    private RecyclerView mRecyclerView;
     private static final int CURSOR_LOADER_ID = 0;
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
     private final String BASE_URL = "http://api.themoviedb.org";
     ProgressDialog mProgressDialog;
-    private MovieCursorAdapter mMoviesAdapter;
+    private CursorMovieAdapter mMoviesAdapter;
+
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        Log.d(LOG_TAG,getActivity().getContentResolver().toString());
+        Log.d(LOG_TAG, getActivity().getContentResolver().toString());
         Cursor c = getActivity().getContentResolver().query(MoviesProvider.Movies.CONTENT_URI,
-                null, null, null, null);
+                                                            null, null, null, null);
         Log.i(LOG_TAG, "cursor count: " + c.getCount());
         if (c == null || c.getCount() == 0) {
             insertData();
@@ -74,30 +79,32 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
 
 
     }
-        @Override
-    public void onResume() {
-            super.onResume();
-            Log.d(LOG_TAG, "resume called");
-            getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
-    }
+
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args){
-        return new CursorLoader(getActivity(), MoviesProvider.Movies.CONTENT_URI,
-                null,
-                null,
-                null,
-                null);
+    public void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG, "resume called");
+        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data){
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getActivity(), MoviesProvider.Movies.CONTENT_URI,
+                                null,
+                                null,
+                                null,
+                                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMoviesAdapter.swapCursor(data);
 
 
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader){
+    public void onLoaderReset(Loader<Cursor> loader) {
         mMoviesAdapter.swapCursor(null);
     }
 
@@ -107,88 +114,95 @@ public class PopMovieGridFragment extends Fragment implements LoaderManager.Load
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setMessage("Loading...");
         mProgressDialog.show();
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
-        final String SORT_KEY = sharedPref.getString(this.getString(R.string.pref_sorting_key), this.getString(R.string.pop_desc));
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(
+                this.getActivity());
+        final String SORT_KEY = sharedPref.getString(this.getString(R.string.pref_sorting_key),
+                                                     this.getString(R.string.pop_desc));
         final int MAX_PAGES = 6;
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(this.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(this.BASE_URL).addConverterFactory(
+                GsonConverterFactory.create()).build();
         retrofit.client().networkInterceptors().add(new StethoInterceptor());
         TMDBFetchService service = retrofit.create(TMDBFetchService.class);
         for (int i = 1; i < MAX_PAGES; i++) {
             Call<MoviesFromTMDB> call = service.movieList(i);
-        call.enqueue(new Callback<MoviesFromTMDB>() {
-            @Override
-            public void onResponse(Response<MoviesFromTMDB> response, Retrofit retrofit) {
-                if (response != null && !response.isSuccess() && response.errorBody() != null) {
-                    Converter<ResponseBody, MoviesFromTMDB> errorConverter =
-                            retrofit.responseConverter(MoviesFromTMDB.class, new Annotation[0]);
-                    try {
-                        MoviesFromTMDB error = errorConverter.convert(response.errorBody());
-                        Log.e("response", error.toString());
+            call.enqueue(new Callback<MoviesFromTMDB>() {
+                @Override
+                public void onResponse(Response<MoviesFromTMDB> response, Retrofit retrofit) {
+                    if (response != null && !response.isSuccess() && response.errorBody() != null) {
+                        Converter<ResponseBody, MoviesFromTMDB> errorConverter =
+                                retrofit.responseConverter(MoviesFromTMDB.class, new Annotation[0]);
+                        try {
+                            MoviesFromTMDB error = errorConverter.convert(response.errorBody());
+                            Log.e("response", error.toString());
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        if (mProgressDialog.isShowing()) {
+                            mProgressDialog.dismiss();
+                        }
+                        MoviesFromTMDB moviesFromTMDB = response.body();
+                        List<Movie> movies = moviesFromTMDB.getMovies();
+                        Log.d("page: ", moviesFromTMDB.getPage().toString());
+                        ArrayList<ContentProviderOperation> batchOperations = new ArrayList<ContentProviderOperation>(
+                                moviesFromTMDB.getMovies().size());
+                        for (Movie movie : movies) {
+                            Builder builder = ContentProviderOperation.newInsert(
+                                    Movies.CONTENT_URI);
+                            builder.withValue(MovieColumns.TITLE, movie.getTitle());
+                            builder.withValue(MovieColumns.POPULARITY, movie.getPopularity());
+                            builder.withValue(MovieColumns.RATING, movie.getVoteAverage());
+                            builder.withValue(MovieColumns.RELEASE_DATE, movie.getReleaseDate());
+                            builder.withValue(MovieColumns.PLOT, movie.getOverview());
+                            builder.withValue(MovieColumns.POSTER, movie.getImgUrl());
+                            builder.withValue(MovieColumns.TRAILERS, "TEMP");
+                            builder.withValue(MovieColumns.REVIEWS, "TEMP");
+                            builder.withValue(MovieColumns.IS_FAVORITE, 0);
+
+
+                            batchOperations.add(builder.build());
+                        }
+
+                        try {
+                            getActivity().getContentResolver().applyBatch(MoviesProvider.AUTHORITY,
+                                                                          batchOperations);
+                        } catch (RemoteException | OperationApplicationException e) {
+                            Log.e(LOG_TAG, "Error applying batch insert", e);
+                        }
+
                     }
-                } else {
-                    if (mProgressDialog.isShowing())
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    if (mProgressDialog.isShowing()) {
                         mProgressDialog.dismiss();
-                    MoviesFromTMDB moviesFromTMDB = response.body();
-                    List<Movie> movies = moviesFromTMDB.getMovies();
-                    Log.d("page: ", moviesFromTMDB.getPage().toString());
-                    ArrayList<ContentProviderOperation> batchOperations = new ArrayList<ContentProviderOperation>(moviesFromTMDB.getMovies().size());
-                    for (Movie movie : movies) {
-                        Builder builder = ContentProviderOperation.newInsert(
-                                Movies.CONTENT_URI);
-                        builder.withValue(MovieColumns.TITLE, movie.getTitle());
-                        builder.withValue(MovieColumns.POPULARITY, movie.getPopularity());
-                        builder.withValue(MovieColumns.RATING, movie.getVoteAverage());
-                        builder.withValue(MovieColumns.RELEASE_DATE, movie.getReleaseDate());
-                        builder.withValue(MovieColumns.PLOT, movie.getOverview());
-                        builder.withValue(MovieColumns.POSTER, movie.getImgUrl());
-                        builder.withValue(MovieColumns.TRAILERS, "TEMP");
-                        builder.withValue(MovieColumns.REVIEWS, "TEMP");
-                        builder.withValue(MovieColumns.IS_FAVORITE, 0);
-
-
-
-                        batchOperations.add(builder.build());
                     }
-
-                    try {
-                        getActivity().getContentResolver().applyBatch(MoviesProvider.AUTHORITY, batchOperations);
-                    } catch (RemoteException | OperationApplicationException e) {
-                        Log.e(LOG_TAG, "Error applying batch insert", e);
-                    }
+                    Log.getStackTraceString(t);
 
                 }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                if (mProgressDialog.isShowing())
-                    mProgressDialog.dismiss();
-                Log.getStackTraceString(t);
-
-            }
-        });
+            });
         }
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
-        recyclerView.setLayoutManager(
-                new GridLayoutManager(recyclerView.getContext(),2)
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
+        mRecyclerView.setLayoutManager(
+                new GridLayoutManager(mRecyclerView.getContext(), 2)
         );
         mProgressDialog = new ProgressDialog(getContext());
         this.mMoviesAdapter =
-                new MovieCursorAdapter(
+                new CursorMovieAdapter(
                         getActivity(), // The current context (this activity)
                         null);
 
-        recyclerView.setAdapter(this.mMoviesAdapter);
+        mRecyclerView.setAdapter(this.mMoviesAdapter);
         return rootView;
     }
 

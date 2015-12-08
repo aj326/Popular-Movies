@@ -47,6 +47,7 @@ public final class MoviesProvider{
         public static Uri withId(long id){
             return buildUri(Path.MOVIES, String.valueOf(id));
         }
+
     }
 
 

@@ -15,4 +15,8 @@
     <string name="movie_title_label">Title</string>
     <string name="favorite">Favorite</string>
     <string name="share_title">Share</string>
+    <string name="title_movie_list">Movies</string>
+    <string name="title_movie_detail">Movie Detail</string>
+    <string name="trailers_label">Trailers</string>
+    <string name="reviews_label">Reviews</string>
 </resources>
