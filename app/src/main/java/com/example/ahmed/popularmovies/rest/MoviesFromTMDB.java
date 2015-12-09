@@ -15,9 +15,15 @@ public class MoviesFromTMDB {
     @SerializedName("page")
     @Expose
     private Integer page;
+
     @SerializedName("results")
     @Expose
     private List<Movie> results = new ArrayList<Movie>();
+
+    @SerializedName("trailers")
+    @Expose
+    private List<String> trailers = new ArrayList<String>();
+
     @SerializedName("total_pages")
     @Expose
     private Integer totalPages;

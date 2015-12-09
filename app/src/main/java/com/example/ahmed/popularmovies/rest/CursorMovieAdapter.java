@@ -47,7 +47,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     public void onBindViewHolder(ViewHolder viewHolder, final Cursor cursor) {
 //        DatabaseUtils.dumpCursor(cursor);
         Log.d("POSTER URL: ", cursor.getString(cursor.getColumnIndex(MovieColumns.POSTER)));
-        Log.e("MOVIE ID, name", (cursor.getString(cursor.getColumnIndex(MovieColumns._ID))) + " " + (cursor.getString(cursor.getColumnIndex(MovieColumns.TITLE))));
+        Log.d("MOVIE ID, name", (cursor.getString(cursor.getColumnIndex(MovieColumns._ID))) + " " + (cursor.getString(cursor.getColumnIndex(MovieColumns.TITLE))));
         Picasso.with(mContext).load(cursor.getString(cursor.getColumnIndex(MovieColumns.POSTER)))
                 .into(viewHolder.mImageview);
         //Is there a cleaner way than to set a tag here<==================================
