@@ -20,8 +20,28 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.ahmed.popularmovies.rest.CursorDetailAdapter;
+import com.example.ahmed.popularmovies.rest.MovieReviews;
+import com.example.ahmed.popularmovies.rest.MovieReviewsFetchService;
+import com.example.ahmed.popularmovies.rest.MovieVideos;
+import com.example.ahmed.popularmovies.rest.Review;
+import com.example.ahmed.popularmovies.rest.TrailersUrlFetchService;
+import com.example.ahmed.popularmovies.rest.Video;
 import com.example.ahmed.popularmovies.schematic.MovieColumns;
+import com.example.ahmed.popularmovies.schematic.MoviesProvider;
+import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Converter;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 /**
  * Created by ahmed on 12/2/15.
@@ -45,9 +65,129 @@ public class DetailFragment extends Fragment
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        insertTrailers();
+        insertReviews();
 
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
+    }
+    private void insertTrailers() {
+        final ArrayList<String> trailers = new ArrayList<>();
+        final TrailersUrlFetchService trailersUrlFetchService = PopMovieGridFragment.retrofit.create(
+                TrailersUrlFetchService.class);
+        Log.d(LOG_TAG, "query count: " + getContext().getContentResolver().query(
+                MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
+
+        Cursor query = getContext().getContentResolver().query(
+                mUri, null, null, null, null);
+        if (!query.moveToFirst()) {
+            Log.e(LOG_TAG, "cant query");
+            return;
+        }
+        Call<MovieVideos> call = trailersUrlFetchService.trailerList(query.getInt(
+                    COLUMNS.ID.ordinal()));
+
+
+        Log.d(LOG_TAG, "enqueing trailers call");
+        call.enqueue(new Callback<MovieVideos>() {
+            @Override
+            public void onResponse(Response<MovieVideos> response, Retrofit retrofit) {
+                if (response != null && !response.isSuccess() && response.errorBody() != null) {
+                    Converter<ResponseBody, MovieVideos> errorConverter =
+                            retrofit.responseConverter(MovieVideos.class, new Annotation[0]);
+                    try {
+                        MovieVideos error = errorConverter.convert(response.errorBody());
+                        Log.e("response", error.toString());
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (response.body() != null) {
+                    MovieVideos movieVideos = response.body();
+
+                    List<Video> videos = movieVideos.getVideos();
+
+                    for (Video video : videos) {
+
+                        if (video.getType().equals("Trailer") && video.getSite().equals(
+                                "YouTube")) {
+                            trailers.add(video.getKey());
+                        }
+                    }
+                    ContentValues value = new ContentValues();
+                    value.put(MovieColumns.TRAILERS, trailers.toString());
+                    getContext().getContentResolver().update(mUri,
+                                                             value, null,
+                                                             null);
+                    Log.d(LOG_TAG, "updated movie");
+                    trailers.clear();
+
+                }
+            }
+
+
+            @Override
+            public void onFailure(Throwable t) {
+
+
+            }
+        });
+    }
+    private void insertReviews() {
+        final ArrayList<List<String>> cleanedUpReviews = new ArrayList<>();
+        final MovieReviewsFetchService movieReviewsFetchService = PopMovieGridFragment.retrofit.create(MovieReviewsFetchService.class);
+        Log.d(LOG_TAG, "query count: " + getContext().getContentResolver().query(
+                MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
+
+        Cursor query = getContext().getContentResolver().query(
+                mUri, null, null, null, null);
+        if (!query.moveToFirst()) {
+            Log.e(LOG_TAG, "cant query");
+            return;
+        }
+        Call<MovieReviews> call = movieReviewsFetchService.reviewsList(query.getInt(
+                COLUMNS.ID.ordinal()));
+
+
+        Log.d(LOG_TAG, "enqueing trailers call");
+        call.enqueue(new Callback<MovieReviews>() {
+            @Override
+            public void onResponse(Response<MovieReviews> response, Retrofit retrofit) {
+                if (response != null && !response.isSuccess() && response.errorBody() != null) {
+                    Converter<ResponseBody, MovieReviews> errorConverter =
+                            retrofit.responseConverter(MovieReviews.class, new Annotation[0]);
+                    try {
+                        MovieReviews error = errorConverter.convert(response.errorBody());
+                        Log.e("response", error.toString());
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                    if(response.body() != null){
+                        MovieReviews movieReviews = response.body();
+
+                        List<Review> reviews = movieReviews.getReviews();
+
+                        for (Review review : reviews) {
+                            cleanedUpReviews.add(Arrays.asList(
+                                    review.getAuthor(), review.getContent()));
+                        }
+                        ContentValues value = new ContentValues();
+                        value.put(MovieColumns.REVIEWS, cleanedUpReviews.toString());
+                                getContext().getContentResolver().update(mUri,
+                                                                         value, null, null);
+                        cleanedUpReviews.clear();
+                    }}
+
+
+                @Override
+            public void onFailure(Throwable t) {
+
+
+            }
+        });
     }
 
 
@@ -201,7 +341,7 @@ public static final String REVIEWS = "reviews";
 public static final String IS_FAVORITE = "is_favorite";
      */
     public enum COLUMNS {
-        _ID, TITLE, POSTER, PLOT, RATING, POPULARITY, RELEASE_DATE, TRAILERS, REVIEWS, IS_FAVORITE
+        _ID, TITLE, POSTER, PLOT, RATING, POPULARITY, RELEASE_DATE, TRAILERS, REVIEWS, IS_FAVORITE, ID
     }
 }
 

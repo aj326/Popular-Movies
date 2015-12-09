@@ -18,6 +18,7 @@ public interface MovieColumns {
     @DataType(DataType.Type.TEXT) @NotNull
     public static final String TITLE = "title";
 
+
     @DataType(DataType.Type.TEXT) @NotNull
     public static final String POSTER = "poster";
 
@@ -41,4 +42,8 @@ public interface MovieColumns {
 
     @DataType(DataType.Type.INTEGER) @NotNull
     public static final String IS_FAVORITE = "is_favorite";
+
+    @DataType(DataType.Type.INTEGER) @NotNull
+    public static final String ID = "id";
+
 }

@@ -20,10 +20,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.ahmed.popularmovies.rest.Movie;
 import com.example.ahmed.popularmovies.rest.CursorMovieAdapter;
+import com.example.ahmed.popularmovies.rest.Movie;
+import com.example.ahmed.popularmovies.rest.MoviesDetailsFetchService;
 import com.example.ahmed.popularmovies.rest.MoviesFromTMDB;
-import com.example.ahmed.popularmovies.rest.TMDBFetchService;
 import com.example.ahmed.popularmovies.schematic.MovieColumns;
 import com.example.ahmed.popularmovies.schematic.MoviesProvider;
 import com.example.ahmed.popularmovies.schematic.MoviesProvider.Movies;
@@ -53,11 +53,15 @@ import retrofit.Retrofit;
 
 public class PopMovieGridFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
+
     private int mPosition;
     private RecyclerView mRecyclerView;
     private static final int CURSOR_LOADER_ID = 0;
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
-    private final String BASE_URL = "http://api.themoviedb.org";
+    private static final String BASE_URL = "http://api.themoviedb.org";
+    public static Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(
+            GsonConverterFactory.create()).build();
+    private final String[] projections= {"ID","TRAILERS","REVIEWS"};
     ProgressDialog mProgressDialog;
     private CursorMovieAdapter mMoviesAdapter;
 
@@ -72,6 +76,8 @@ public class PopMovieGridFragment extends Fragment
         if (c == null || c.getCount() == 0) {
             insertData();
         }
+
+
 
 
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
@@ -119,10 +125,9 @@ public class PopMovieGridFragment extends Fragment
         final String SORT_KEY = sharedPref.getString(this.getString(R.string.pref_sorting_key),
                                                      this.getString(R.string.pop_desc));
         final int MAX_PAGES = 6;
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(this.BASE_URL).addConverterFactory(
-                GsonConverterFactory.create()).build();
+
         retrofit.client().networkInterceptors().add(new StethoInterceptor());
-        TMDBFetchService service = retrofit.create(TMDBFetchService.class);
+        MoviesDetailsFetchService service = retrofit.create(MoviesDetailsFetchService.class);
         for (int i = 1; i < MAX_PAGES; i++) {
             Call<MoviesFromTMDB> call = service.movieList(i);
             call.enqueue(new Callback<MoviesFromTMDB>() {
@@ -159,6 +164,7 @@ public class PopMovieGridFragment extends Fragment
                             builder.withValue(MovieColumns.TRAILERS, "TEMP");
                             builder.withValue(MovieColumns.REVIEWS, "TEMP");
                             builder.withValue(MovieColumns.IS_FAVORITE, 0);
+                            builder.withValue(MovieColumns.ID,movie.getId());
 
 
                             batchOperations.add(builder.build());
@@ -174,6 +180,7 @@ public class PopMovieGridFragment extends Fragment
                     }
                 }
 
+
                 @Override
                 public void onFailure(Throwable t) {
                     if (mProgressDialog.isShowing()) {
@@ -184,6 +191,8 @@ public class PopMovieGridFragment extends Fragment
                 }
             });
         }
+
+
 
     }
 
