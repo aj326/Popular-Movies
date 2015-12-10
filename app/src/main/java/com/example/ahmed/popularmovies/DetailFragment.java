@@ -1,5 +1,6 @@
 package com.example.ahmed.popularmovies;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,6 +16,8 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -56,6 +59,7 @@ public class DetailFragment extends Fragment
     private CheckBox isFav;
     private CursorDetailAdapter mCursorDetailAdapter;
     private ListView mListView;
+    private  ContentResolver mContentResolver;
 
 
 
@@ -65,6 +69,7 @@ public class DetailFragment extends Fragment
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        mContentResolver =  getContext().getContentResolver();
         insertTrailers();
         insertReviews();
 
@@ -75,10 +80,10 @@ public class DetailFragment extends Fragment
         final ArrayList<String> trailers = new ArrayList<>();
         final TrailersUrlFetchService trailersUrlFetchService = PopMovieGridFragment.retrofit.create(
                 TrailersUrlFetchService.class);
-        Log.d(LOG_TAG, "query count: " + getContext().getContentResolver().query(
+        Log.d(LOG_TAG, "query count: " + mContentResolver.query(
                 MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
 
-        Cursor query = getContext().getContentResolver().query(
+        Cursor query = mContentResolver.query(
                 mUri, null, null, null, null);
         if (!query.moveToFirst()) {
             Log.e(LOG_TAG, "cant query");
@@ -117,9 +122,9 @@ public class DetailFragment extends Fragment
                     }
                     ContentValues value = new ContentValues();
                     value.put(MovieColumns.TRAILERS, trailers.toString());
-                    getContext().getContentResolver().update(mUri,
-                                                             value, null,
-                                                             null);
+                    mContentResolver.update(mUri,
+                                            value, null,
+                                            null);
                     Log.d(LOG_TAG, "updated movie");
                     trailers.clear();
 
@@ -137,10 +142,10 @@ public class DetailFragment extends Fragment
     private void insertReviews() {
         final ArrayList<List<String>> cleanedUpReviews = new ArrayList<>();
         final MovieReviewsFetchService movieReviewsFetchService = PopMovieGridFragment.retrofit.create(MovieReviewsFetchService.class);
-        Log.d(LOG_TAG, "query count: " + getContext().getContentResolver().query(
+        Log.d(LOG_TAG, "query count: " + mContentResolver.query(
                 MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
 
-        Cursor query = getContext().getContentResolver().query(
+        Cursor query = mContentResolver.query(
                 mUri, null, null, null, null);
         if (!query.moveToFirst()) {
             Log.e(LOG_TAG, "cant query");
@@ -176,8 +181,8 @@ public class DetailFragment extends Fragment
                         }
                         ContentValues value = new ContentValues();
                         value.put(MovieColumns.REVIEWS, cleanedUpReviews.toString());
-                                getContext().getContentResolver().update(mUri,
-                                                                         value, null, null);
+                        mContentResolver.update(mUri,
+                                                value, null, null);
                         cleanedUpReviews.clear();
                     }}
 
@@ -245,7 +250,7 @@ public class DetailFragment extends Fragment
 //        values.put(MovieColumns.IS_FAVORITE, isFav.isChecked() ? 1 : 0);
         Log.d(LOG_TAG, "onLoadFinished, isFav is " + isFav.isChecked());
 
-//        isFav.setChecked((data.getInt(COLUMNS.IS_FAVORITE.ordinal()) == 1));
+        isFav.setChecked((data.getInt(COLUMNS.IS_FAVORITE.ordinal()) == 1));
 
         mCursorDetailAdapter.swapCursor(data);
 
@@ -270,27 +275,28 @@ public class DetailFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        FrameLayout rootview= (FrameLayout) inflater.inflate(R.layout.fragment_detail,
+                                                                   container,
+                                                               false);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
         }
-        isFav = (CheckBox) inflater.inflate(R.layout.fragment_detail, container, false).findViewById(R.id.star);
-        isFav.setOnClickListener(new View.OnClickListener() {
+        isFav = (CheckBox)rootview.findViewById(R.id.star);
+        isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 ContentValues values = new ContentValues();
-                if (((CheckBox) v).isChecked()) values.put(MovieColumns.IS_FAVORITE, 1);
-                else values.put(MovieColumns.IS_FAVORITE, 0);
-                getActivity().getContentResolver().update(mUri, values, null, null);
+                Log.d("Det:onChecked", "before update");
+                values.put(MovieColumns.IS_FAVORITE, isChecked);
+                getActivity().getContentResolver().update(mUri, values, "_id+?",
+                                                          new String[]{mUri.getLastPathSegment()});
+                Log.d("Det:onChecked", "after update");
             }
         });
         mCursorDetailAdapter = new CursorDetailAdapter(getContext(),null);
         mCursorDetailAdapter.bindView(isFav, getContext(), null);
-
-
-
-        return inflater.inflate(R.layout.fragment_detail, container, false);
+        return rootview;
     }
 
 

@@ -55,7 +55,7 @@ public class CursorDetailAdapter extends CursorAdapter
         public ViewHolder(View view) {
             super(view);
             mStar = (CheckBox) view.findViewById(R.id.star);
-//            mStar = (CheckBox) view.findViewById(R.id.star);
+//            isFav = (CheckBox) view.findViewById(R.id.star);
 
         }
 

@@ -201,6 +201,7 @@ public class PopMovieGridFragment extends Fragment
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
         mRecyclerView.setLayoutManager(
                 new GridLayoutManager(mRecyclerView.getContext(), 2)
@@ -214,6 +215,5 @@ public class PopMovieGridFragment extends Fragment
         mRecyclerView.setAdapter(this.mMoviesAdapter);
         return rootView;
     }
-
 
 }
