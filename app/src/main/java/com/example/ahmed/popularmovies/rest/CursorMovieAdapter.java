@@ -8,8 +8,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import com.example.ahmed.popularmovies.DetailFragment;
 import com.example.ahmed.popularmovies.R;
 import com.example.ahmed.popularmovies.schematic.MovieColumns;
 import com.example.ahmed.popularmovies.schematic.MoviesProvider;
@@ -24,8 +26,10 @@ import com.squareup.picasso.Picasso;
 public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAdapter.ViewHolder>
 {
     public interface Callback{
-        public void onItemSelected(Uri movieUri);
+         void onItemSelected(Uri movieUri);
     }
+
+
     
     Context mContext;
     ViewHolder mVh;
@@ -44,7 +48,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final Cursor cursor) {
+    public void onBindViewHolder(ViewHolder viewHolder, final Cursor cursor){
 //        DatabaseUtils.dumpCursor(cursor);
         Log.d("POSTER URL: ", cursor.getString(cursor.getColumnIndex(MovieColumns.POSTER)));
         Log.d("MOVIE ID, name", (cursor.getString(cursor.getColumnIndex(MovieColumns._ID))) + " " + (cursor.getString(cursor.getColumnIndex(MovieColumns.TITLE))));
@@ -55,6 +59,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
         viewHolder.mImageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("onClick,poster", "what's happening?");
                 ((Callback) mContext)
                         .onItemSelected(MoviesProvider.Movies.withId(_id)
                         );
@@ -66,7 +71,22 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
 
             }
         });
-//        viewHolder.mStar.setOnClickListener(new View.OnClickListener() {
+//        final ContentResolver contentResolver = mContext.getContentResolver();
+//        viewHolder.isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                changeFav(_id, isChecked);
+////                ContentValues values = new ContentValues();
+//                Log.d("onChecked", "before update");
+////                values.put(MovieColumns.IS_FAVORITE, isChecked);
+////                contentResolver.update(MoviesProvider.Movies.withId(_id), values, "_id+?",
+////                        new String[]{MoviesProvider.Movies.withId(_id).getLastPathSegment()});
+//                Log.d("onChecked", "after update");
+//            }
+//        });
+        viewHolder.isFav.setChecked((cursor.getInt(DetailFragment.COLUMNS.IS_FAVORITE.ordinal()) == 1));
+
+//        viewHolder.isFav.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
 //                Log.d("onClick: ", ("" + ((CheckBox) v).isChecked()));
@@ -93,11 +113,11 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView mImageview;
-//        public CheckBox mStar;
+        public CheckBox isFav;
         public ViewHolder(View view) {
             super(view);
             mImageview = (ImageView) view.findViewById(R.id.poster);
-//            mStar = (CheckBox) view.findViewById(R.id.star);
+            isFav = (CheckBox) view.findViewById(R.id.star);
 
         }
 

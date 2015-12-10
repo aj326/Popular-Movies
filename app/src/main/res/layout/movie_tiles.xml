@@ -13,17 +13,17 @@
     android:layout_height="fill_parent"
     android:adjustViewBounds="true"
     android:minHeight="?android:attr/listPreferredItemHeight"
-    android:scaleType="fitXY" />
+    android:scaleType="fitXY"
+    android:clickable="true"/>
 
     <CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@id/star"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_alignRight="@id/poster"
-
-        android:adjustViewBounds="true"
-        android:button="@android:drawable/btn_star_big_off"
-        android:checked="false"
         android:clickable="true"
-        android:scaleType="center" />
+        android:adjustViewBounds="true"
+              android:button="@drawable/favorite"
+              android:contentDescription="@string/favorite"
+ />
 </RelativeLayout>

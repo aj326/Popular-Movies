@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle args = new Bundle();
+            Log.d("MainAct movieUri", movieUri.toString());
             args.putParcelable(DetailFragment.DETAIL_URI, movieUri);
 
             DetailFragment fragment = new DetailFragment();
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                     .commit();
             Log.v("MainActivity","Completed replacing detail cont");
         } else {
+            Log.d("MainAct movieUri", movieUri.toString());
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(movieUri);
             startActivity(intent);
