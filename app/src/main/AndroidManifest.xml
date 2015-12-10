@@ -36,9 +36,13 @@
                 android:value="com.example.ahmed.popularmovies.MainActivity" />
         </activity>
 
+        <!--<provider-->
+            <!--android:name=".schematic.generated.MoviesProvider"-->
+            <!--android:authorities="com.example.ahmed.popularmovies.schematic.MoviesProvider"-->
+            <!--android:exported="false" />-->
         <provider
-            android:name=".schematic.generated.MoviesProvider"
-            android:authorities="com.example.ahmed.popularmovies.schematic.MoviesProvider"
+            android:name=".data.MovieProvider"
+            android:authorities="com.example.ahmed.popularmovies.data.MovieProvider"
             android:exported="false" />
 
     </application>
