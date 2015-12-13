@@ -16,19 +16,11 @@ package com.example.ahmed.popularmovies;
  * limitations under the License.
  */
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.CheckBox;
-
-import com.example.ahmed.popularmovies.schematic.MovieColumns;
-import com.example.ahmed.popularmovies.schematic.MoviesProvider;
 
 
 public class DetailActivity extends ActionBarActivity {
@@ -73,7 +65,6 @@ public class DetailActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
 
 
 
