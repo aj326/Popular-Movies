@@ -1,5 +1,7 @@
 package com.example.ahmed.popularmovies.rest;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -28,6 +30,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     public interface Callback{
          void onItemSelected(Uri movieUri);
     }
+
 
 
     
@@ -71,19 +74,17 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
 
             }
         });
-//        final ContentResolver contentResolver = mContext.getContentResolver();
-//        viewHolder.isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                changeFav(_id, isChecked);
-////                ContentValues values = new ContentValues();
-//                Log.d("onChecked", "before update");
-////                values.put(MovieColumns.IS_FAVORITE, isChecked);
-////                contentResolver.update(MoviesProvider.Movies.withId(_id), values, "_id+?",
-////                        new String[]{MoviesProvider.Movies.withId(_id).getLastPathSegment()});
-//                Log.d("onChecked", "after update");
-//            }
-//        });
+        final ContentResolver contentResolver = mContext.getContentResolver();
+        viewHolder.isFav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues values = new ContentValues();
+                values.put(MovieColumns.IS_FAVORITE, ((CheckBox) view).isChecked());
+                contentResolver.update(MoviesProvider.Movies.withId(_id), values, "_id+?",
+                                       new String[]{
+                                               MoviesProvider.Movies.withId(_id).getLastPathSegment()});
+            }
+        });
         viewHolder.isFav.setChecked((cursor.getInt(DetailFragment.COLUMNS.IS_FAVORITE.ordinal()) == 1));
 
 //        viewHolder.isFav.setOnClickListener(new View.OnClickListener() {
