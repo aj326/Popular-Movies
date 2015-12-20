@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MovieDBHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public static final String DATABASE_NAME = "movie.db";
 
@@ -22,11 +22,23 @@ public class MovieDBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         // Create a table to hold locations.  A location consists of the string supplied in the
         // location setting, the city name, and the latitude and longitude
-        final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + MovieContract.ReviewsEntry.TABLE_NAME + " (" +
-                                                 MovieContract.ReviewsEntry._ID + " INTEGER PRIMARY KEY," +
-                                                 MovieContract.ReviewsEntry.COLUMN_AUTHOR + " TEXT, " +
-                                                 MovieContract.ReviewsEntry.COLUMN_CONTENT + " TEXT " +
-                                                 " );";
+        final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + MovieContract.ReviewEntry.TABLE_NAME + " (" +
+                                               MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                               MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " INTEGER," +
+                                               MovieContract.ReviewEntry.COLUMN_AUTHOR + " TEXT, " +
+                                                 MovieContract.ReviewEntry.COLUMN_CONTENT + " TEXT, " +
+                                               " FOREIGN KEY (" + MovieContract.ReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
+                                               MovieContract.MovieEntry.TABLE_NAME + " (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "));";
+
+
+        final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + MovieContract.TrailerEntry.TABLE_NAME + " (" +
+                                                MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                                MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " INTEGER," +
+                                               MovieContract.TrailerEntry.COLUMN_URL + " TEXT, " +
+                                                " FOREIGN KEY (" + MovieContract.TrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
+                                                MovieContract.MovieEntry.TABLE_NAME + " (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "));";
+
+
 
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + " (" +
                                                 // Why AutoIncrement here, and not above?
@@ -34,31 +46,32 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                                                 // forecasting, it's reasonable to assume the user will want information
                                                 // for a certain date and all dates *following*, so the forecast data
                                                 // should be sorted accordingly.
-                                                MovieContract.MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                              MovieContract.MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                              MovieContract.MovieEntry.COLUMN_MOVIE_ID + " INTEGER UNIQUE NOT NULL, " +
 
                                                 // the ID of the location entry associated with this weather data
-                                                MovieContract.MovieEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
                                                 MovieContract.MovieEntry.COLUMN_TITLE + " TEXT UNIQUE NOT NULL, " +
                                                 MovieContract.MovieEntry.COLUMN_POSTER + " TEXT  NOT NULL, " +
                                                 MovieContract.MovieEntry.COLUMN_PLOT + " TEXT  NOT NULL, " +
-                                                MovieContract.MovieEntry.COLUMN_POPULARITY + " REAL NOT NULL, " +
                                                 MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
+                                                MovieContract.MovieEntry.COLUMN_POPULARITY + " REAL NOT NULL, " +
+                                                MovieContract.MovieEntry.COLUMN_RATING + " REAL NOT NULL, " +
+                                                MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " REAL NOT NULL, " +
 
-                                              MovieContract.MovieEntry.COLUMN_RATING + " REAL NOT NULL, " +
-                                                MovieContract.MovieEntry.COLUMN_TRAILERS + " TEXT ," +
-                                                MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " TEXT NOT NULL, " +
+                                              MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " INTEGER NOT NULL );";
 
 
 
-                                                // Set up the location column as a foreign key to location table.
-                                                " FOREIGN KEY (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
-                                                MovieContract.ReviewsEntry.TABLE_NAME + " (" + MovieContract.ReviewsEntry._ID + "), " +
+//                                                // Set up the location column as a foreign key to location table.
+//                                                " FOREIGN KEY (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
+//                                                MovieContract.ReviewEntry.TABLE_NAME + " (" + MovieContract.ReviewEntry._ID + "), " +
 
                                                 // To assure the application have just one weather entry per day
                                                 // per location, it's created a UNIQUE constraint with REPLACE strategy
-                                                " UNIQUE (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE);";
+//                                                " UNIQUE (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_TRAILER_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE);
     }
 
@@ -71,7 +84,8 @@ public class MovieDBHelper extends SQLiteOpenHelper {
         // If you want to update the schema without wiping data, commenting out the next 2 lines
         // should be your top priority before modifying this method.
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.ReviewsEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.TrailerEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.ReviewEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

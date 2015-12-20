@@ -56,8 +56,9 @@ public class TestDb extends AndroidTestCase {
         // Note that there will be another table in the DB that stores the
         // Android metadata (db version information)
         final HashSet<String> tableNameHashSet = new HashSet<String>();
-        tableNameHashSet.add(MovieContract.ReviewsEntry.TABLE_NAME);
         tableNameHashSet.add(MovieContract.MovieEntry.TABLE_NAME);
+        tableNameHashSet.add(MovieContract.ReviewEntry.TABLE_NAME);
+        tableNameHashSet.add(MovieContract.TrailerEntry.TABLE_NAME);
 
         mContext.deleteDatabase(MovieDBHelper.DATABASE_NAME);
         SQLiteDatabase db = new MovieDBHelper(
@@ -75,35 +76,42 @@ public class TestDb extends AndroidTestCase {
             tableNameHashSet.remove(c.getString(0));
         } while( c.moveToNext() );
 
-        // if this fails, it means that your database doesn't contain both the location entry
-        // and weather entry tables
-        assertTrue("Error: Your database was created without both the location entry and weather entry tables",
+        // if this fails, it means that your database doesn't contain movies, trailer, review entry tables
+        assertTrue("Error: Your database was created without movies, trailer, review entry tables",
                 tableNameHashSet.isEmpty());
 
         // now, do our tables contain the correct columns?
-        c = db.rawQuery("PRAGMA table_info(" + MovieContract.ReviewsEntry.TABLE_NAME + ")",
+        c = db.rawQuery("PRAGMA table_info(" + MovieContract.MovieEntry.TABLE_NAME + ")",
                 null);
 
         assertTrue("Error: This means that we were unable to query the database for table information.",
                 c.moveToFirst());
 
         // Build a HashSet of all of the column names we want to look for
-        final HashSet<String> reviewColumnHashSet = new HashSet<String>();
-        reviewColumnHashSet.add(MovieContract.ReviewsEntry._ID);
-        reviewColumnHashSet.add(MovieContract.ReviewsEntry.COLUMN_AUTHOR);
-        reviewColumnHashSet.add(MovieContract.ReviewsEntry.COLUMN_CONTENT);
+        final HashSet<String> movieColumnHashSet = new HashSet<String>();
+        movieColumnHashSet.add(MovieContract.MovieEntry._ID);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_MOVIE_ID);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_IS_FAVORITE);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_PLOT);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POPULARITY);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POSTER);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_RATING);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_RELEASE_DATE);
+        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_TITLE);
+
+
 
 
         int columnNameIndex = c.getColumnIndex("name");
         do {
             String columnName = c.getString(columnNameIndex);
-            reviewColumnHashSet.remove(columnName);
+            movieColumnHashSet.remove(columnName);
         } while(c.moveToNext());
 
         // if this fails, it means that your database doesn't contain all of the required location
         // entry columns
-        assertTrue("Error: The database doesn't contain all of the required location entry columns",
-                   reviewColumnHashSet.isEmpty());
+        assertTrue("Error: The database doesn't contain all of the required movie entry columns",
+                   movieColumnHashSet.isEmpty());
         db.close();
     }
 
@@ -113,8 +121,8 @@ public class TestDb extends AndroidTestCase {
         where you can uncomment out the "createDummyReview" function.  You can
         also make use of the ValidateCurrentRecord function from within TestUtilities.
     */
-    public void testLocationTable() {
-        insertReview();
+    public void testMovieTable() {
+        insertMovie();
     }
 
     /*
@@ -123,19 +131,19 @@ public class TestDb extends AndroidTestCase {
         where you can use the "createWeatherValues" function.  You can
         also make use of the validateCurrentRecord function from within TestUtilities.
      */
-    public void testWeatherTable() {
-        // First insert the location, and then use the locationRowId to insert
-        // the weather. Make sure to cover as many failure cases as you can.
+    public void testReviewTable() {
+        // First insert the movie, and then use the movieRowId to insert
+        // the review. Make sure to cover as many failure cases as you can.
 
-        // Instead of rewriting all of the code we've already written in testLocationTable
-        // we can move this code to insertReview and then call insertReview from both
+        // Instead of rewriting all of the code we've already written in testMovieTable
+        // we can move this code to insertMovie and then call insertMovie from both
         // tests. Why move it? We need the code to return the ID of the inserted location
         // and our testLocationTable can only return void because it's a test.
 
-        long locationRowId = insertReview();
+        long movieRowId = insertMovie();
 
         // Make sure we have a valid row ID.
-        assertFalse("Error: Location Not Inserted Correctly", locationRowId == -1L);
+        assertFalse("Error: Movie Not Inserted Correctly", movieRowId == -1L);
 
         // First step: Get reference to writable database
         // If there's an error in those massive SQL table creation Strings,
@@ -143,16 +151,18 @@ public class TestDb extends AndroidTestCase {
         MovieDBHelper dbHelper = new MovieDBHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // Second Step (Weather): Create weather values
-        ContentValues weatherValues = TestUtilities.createMovieValues(locationRowId);
-        // Third Step (Weather): Insert ContentValues into database and get a row ID back
-        long weatherRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, weatherValues);
-        assertTrue(weatherRowId != -1);
+        // Second Step (Movie): Create weather values
+        ContentValues reviewValues1 = TestUtilities.createDummyReview(1234);
+        ContentValues reviewValues2 = TestUtilities.createDummyReview(1234);
+        db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, reviewValues1);
+        db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, reviewValues2);
+
+//        insertDummyReviewsValues(mContext,1234);
 
         // Fourth Step: Query the database and receive a Cursor back
         // A cursor is your primary interface to the query results.
-        Cursor weatherCursor = db.query(
-                MovieContract.MovieEntry.TABLE_NAME,  // Table to Query
+        Cursor reviewCursor = db.query(
+                MovieContract.ReviewEntry.TABLE_NAME,  // Table to Query
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause
@@ -162,45 +172,102 @@ public class TestDb extends AndroidTestCase {
         );
 
         // Move the cursor to the first valid database row and check to see if we have any rows
-        assertTrue( "Error: No Records returned from location query", weatherCursor.moveToFirst() );
+        assertTrue("Error: No Records returned from location query", reviewCursor.moveToFirst());
 
         // Fifth Step: Validate the location Query
         TestUtilities.validateCurrentRecord("testInsertReadDb weatherEntry failed to validate",
-                weatherCursor, weatherValues);
+                reviewCursor, reviewValues1);
+        reviewCursor.moveToNext();
+        TestUtilities.validateCurrentRecord("testInsertReadDb weatherEntry failed to validate",
+                                            reviewCursor, reviewValues2);
 
         // Move the cursor to demonstrate that there is only one record in the database
-        assertFalse( "Error: More than one record returned from weather query",
-                weatherCursor.moveToNext() );
+        assertFalse("Error: More than one record returned from weather query",
+                    reviewCursor.moveToNext());
 
         // Sixth Step: Close cursor and database
-        weatherCursor.close();
+        reviewCursor.close();
         dbHelper.close();
     }
+    public void testTrailerTable() {
+        // First insert the movie, and then use the movieRowId to insert
+        // the review. Make sure to cover as many failure cases as you can.
 
+        // Instead of rewriting all of the code we've already written in testMovieTable
+        // we can move this code to insertMovie and then call insertMovie from both
+        // tests. Why move it? We need the code to return the ID of the inserted location
+        // and our testLocationTable can only return void because it's a test.
+
+        long movieRowId = insertMovie();
+
+        // Make sure we have a valid row ID.
+        assertFalse("Error: Movie Not Inserted Correctly", movieRowId == -1L);
+
+        // First step: Get reference to writable database
+        // If there's an error in those massive SQL table creation Strings,
+        // errors will be thrown here when you try to get a writable database.
+        MovieDBHelper dbHelper = new MovieDBHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // Second Step (Movie): Create weather values
+        ContentValues trailerValues1 = TestUtilities.createDummyTrailer(1234);
+        ContentValues trailerValues2 = TestUtilities.createDummyTrailer2(1234);
+        db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, trailerValues1);
+        db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, trailerValues2);
+
+//        insertDummyReviewsValues(mContext,1234);
+
+        // Fourth Step: Query the database and receive a Cursor back
+        // A cursor is your primary interface to the query results.
+        Cursor reviewCursor = db.query(
+                MovieContract.TrailerEntry.TABLE_NAME,  // Table to Query
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null, // columns to group by
+                null, // columns to filter by row groups
+                null  // sort order
+        );
+
+        // Move the cursor to the first valid database row and check to see if we have any rows
+        assertTrue("Error: No Records returned from location query", reviewCursor.moveToFirst());
+
+        // Fifth Step: Validate the location Query
+        TestUtilities.validateCurrentRecord("testInsertReadDb weatherEntry failed to validate",
+                                            reviewCursor, trailerValues1);
+        reviewCursor.moveToNext();
+        TestUtilities.validateCurrentRecord("testInsertReadDb weatherEntry failed to validate",
+                                            reviewCursor, trailerValues2);
+
+        // Move the cursor to demonstrate that there is only one record in the database
+        assertFalse("Error: More than one record returned from weather query",
+                    reviewCursor.moveToNext());
+
+        // Sixth Step: Close cursor and database
+        reviewCursor.close();
+        dbHelper.close();
+    }
 
     /*
         Students: This is a helper method for the testWeatherTable quiz. You can move your
         code from testLocationTable to here so that you can call this code from both
         testWeatherTable and testLocationTable.
      */
-    public long insertReview() {
+    public long insertMovie() {
         // First step: Get reference to writable database
         // If there's an error in those massive SQL table creation Strings,
         // errors will be thrown here when you try to get a writable database.
         MovieDBHelper dbHelper = new MovieDBHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        long locationRowId;
+        long moviewRowId;
 
         // Second Step: Create ContentValues of what you want to insert
-        // (you can use the createDummyReview if you wish)
-        ContentValues testValues = TestUtilities.createDummyReview();
-        locationRowId = db.insert(MovieContract.ReviewsEntry.TABLE_NAME, null, testValues);
-        ContentValues  testValues2= TestUtilities.createDummyReview2();
-        // Third Step: Insert ContentValues into database and get a row ID back
-        locationRowId = db.insert(MovieContract.ReviewsEntry.TABLE_NAME, null, testValues2);
+        // (you can use the createMovieValues if you wish)
+        ContentValues testValues = TestUtilities.createMovieValues();
+        moviewRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, testValues);
 
         // Verify we got a row back.
-        assertTrue(locationRowId != -1);
+        assertTrue(moviewRowId != -1);
 
         // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
         // the round trip.
@@ -208,7 +275,7 @@ public class TestDb extends AndroidTestCase {
         // Fourth Step: Query the database and receive a Cursor back
         // A cursor is your primary interface to the query results.
         Cursor cursor = db.query(
-                MovieContract.ReviewsEntry.TABLE_NAME,  // Table to Query
+                MovieContract.MovieEntry.TABLE_NAME,  // Table to Query
                 null, // all columns
                 null, // Columns for the "where" clause
                 null, // Values for the "where" clause
@@ -226,9 +293,6 @@ public class TestDb extends AndroidTestCase {
         // query if you like)
         TestUtilities.validateCurrentRecord("Error: Location Query Validation Failed",
                 cursor, testValues);
-        cursor.moveToNext();
-        TestUtilities.validateCurrentRecord("Error: Location Query Validation Failed",
-                                            cursor, testValues2);
         // Move the cursor to demonstrate that there is only one record in the database
         assertFalse("Error: More than two records returned from location query",
                    cursor.moveToNext());
@@ -237,6 +301,6 @@ public class TestDb extends AndroidTestCase {
         // Sixth Step: Close Cursor and Database
         cursor.close();
         db.close();
-        return locationRowId;
+        return moviewRowId;
     }
 }

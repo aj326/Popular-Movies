@@ -3,7 +3,7 @@
 <!-- Layout for weather forecast list item for future day (not today) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="match_parent"
               android:gravity="center_vertical"
               android:minHeight="?android:attr/listPreferredItemHeight"
               android:orientation="vertical"
@@ -14,15 +14,16 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/list_item_reviewer_name"
+            android:id="@+id/list_item_review_author"
             android:text="Ahmed AlJehairan"
             android:layout_gravity="left"
             android:textAppearance="?android:textAppearanceMedium"
 
             />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/list_item_review"
+            android:id="@+id/list_item_review_content"
             android:text="Review"/>
 </LinearLayout>

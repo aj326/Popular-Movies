@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 //    public void changeFav(long _id, View view) {
 //        ContentValues values = new ContentValues();
 //        values.put(MovieColumns.IS_FAVORITE, ((CheckBox) view).isChecked());
-//        getContentResolver().update(MoviesProvider.Movies.withId(_id), values, "_id+?",
+//        getContentResolver().update(MoviesProvider.Movies.withId(_id), values, "movie_id=?",
 //                                    new String[]{
 //                                            MoviesProvider.Movies.withId(_id).getLastPathSegment()});
 //    }
