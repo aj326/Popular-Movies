@@ -1,9 +1,7 @@
 
 package com.example.ahmed.popularmovies.rest;
 
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -27,6 +25,10 @@ public class Movie {
     @SerializedName("release_date")
     @Expose
     private String releaseDate;
+//    runtime": 115,
+@SerializedName("runtime")
+@Expose
+private int runtime;
 
     @SerializedName("poster_path")
     @Expose
@@ -39,10 +41,6 @@ public class Movie {
     @SerializedName("title")
     @Expose
     private String title;
-
-    @SerializedName("video")
-    @Expose
-    private Boolean video;
 
     @SerializedName("vote_average")
     @Expose
@@ -72,9 +70,12 @@ public class Movie {
     /**
      * @return The releaseDate
      */
+    public int getRuntime() {
+        return runtime;}
     public String getReleaseDate() {
         return releaseDate;
     }
+
 
 
     /**
@@ -104,9 +105,9 @@ public class Movie {
     /**
      * @return The video
      */
-    public Boolean getVideo() {
-        return video;
-    }
+//    public Boolean getVideo() {
+//        return video;
+//    }
 
     /**
 
@@ -121,32 +122,17 @@ public class Movie {
     /**
      * @return The voteCount
      */
-    public Integer getVoteCount() {
+    public int getVoteCount() {
         return voteCount;
     }
-
+    public double getTrueRating(){
+        return voteCount*voteCount;
+    }
 
     public String getImgUrl() {
         return Uri.parse("http://image.tmdb.org/t/p/w500/").buildUpon()
                 .appendEncodedPath(posterPath)
                 .build().toString();
-    }
-
-    public Bundle bundleMovie() {
-        Bundle bundle = new Bundle();
-        bundle.putString("imgUrl", getImgUrl());
-        bundle.putString("title", title);
-        bundle.putString("plot", overview);
-        bundle.putString("rating", voteAverage + "/10");
-        bundle.putString("date", releaseDate);
-        return bundle;
-    }
-    public static Movie fromCursor(Cursor cursor){
-        Movie movie = new Movie();
-        return movie;
-    }
-    public String toString() {
-        return bundleMovie().toString();
     }
 
 }

@@ -20,13 +20,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.ahmed.popularmovies.data.MovieContract;
 import com.example.ahmed.popularmovies.rest.CursorMovieAdapter;
 import com.example.ahmed.popularmovies.rest.Movie;
 import com.example.ahmed.popularmovies.rest.MoviesDetailsFetchService;
 import com.example.ahmed.popularmovies.rest.MoviesFromTMDB;
-import com.example.ahmed.popularmovies.schematic.MovieColumns;
-import com.example.ahmed.popularmovies.schematic.MoviesProvider;
-import com.example.ahmed.popularmovies.schematic.MoviesProvider.Movies;
 import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.okhttp.ResponseBody;
 
@@ -70,7 +68,7 @@ public class PopMovieGridFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         Log.d(LOG_TAG, getActivity().getContentResolver().toString());
-        Cursor c = getActivity().getContentResolver().query(MoviesProvider.Movies.CONTENT_URI,
+        Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                                                             null, null, null, null);
         Log.i(LOG_TAG, "cursor count: " + c.getCount());
         if (c == null || c.getCount() == 0) {
@@ -91,11 +89,12 @@ public class PopMovieGridFragment extends Fragment
         super.onResume();
         Log.d(LOG_TAG, "resume called");
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(), MoviesProvider.Movies.CONTENT_URI,
+        return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI,
                                 null,
                                 null,
                                 null,
@@ -154,24 +153,25 @@ public class PopMovieGridFragment extends Fragment
                                 moviesFromTMDB.getMovies().size());
                         for (Movie movie : movies) {
                             Builder builder = ContentProviderOperation.newInsert(
-                                    Movies.CONTENT_URI);
-                            builder.withValue(MovieColumns.TITLE, movie.getTitle());
-                            builder.withValue(MovieColumns.POPULARITY, movie.getPopularity());
-                            builder.withValue(MovieColumns.RATING, movie.getVoteAverage());
-                            builder.withValue(MovieColumns.RELEASE_DATE, movie.getReleaseDate());
-                            builder.withValue(MovieColumns.PLOT, movie.getOverview());
-                            builder.withValue(MovieColumns.POSTER, movie.getImgUrl());
-                            builder.withValue(MovieColumns.TRAILERS, "TEMP");
-                            builder.withValue(MovieColumns.REVIEWS, "TEMP");
-                            builder.withValue(MovieColumns.IS_FAVORITE, 0);
-                            builder.withValue(MovieColumns.ID,movie.getId());
+                                    MovieContract.MovieEntry.CONTENT_URI);
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_TITLE, movie.getTitle());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_POPULARITY, movie.getPopularity());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_RATING, movie.getVoteAverage());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_SORT_BY_RATING, movie.getTrueRating());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_PLOT, movie.getOverview());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_POSTER, movie.getImgUrl());
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
 
-
+                            builder.withValue(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movie.getId());
+//                            ContentValues movie_id = new ContentValues();
+//                            movie_id.put(ReviewColumns.MOVIE_ID,movie.getId());
+//                            getActivity().getContentResolver().insert(MoviesProvider.Reviews.CONTENT_URI,movie_id);
                             batchOperations.add(builder.build());
                         }
 
                         try {
-                            getActivity().getContentResolver().applyBatch(MoviesProvider.AUTHORITY,
+                            getActivity().getContentResolver().applyBatch(MovieContract.CONTENT_AUTHORITY,
                                                                           batchOperations);
                         } catch (RemoteException | OperationApplicationException e) {
                             Log.e(LOG_TAG, "Error applying batch insert", e);

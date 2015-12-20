@@ -34,7 +34,7 @@ public class TestWeatherContract extends AndroidTestCase {
         Students: Uncomment this out to test your weather location function.
      */
     public void testBuildWeatherLocation() {
-        Uri locationUri = MovieContract.MovieEntry.buildMovieUri(123);
+        Uri locationUri = MovieContract.MovieEntry.buildMovieUri(1234);
         assertNotNull("Error: Null Uri returned.  You must fill-in buildWeatherLocation in " +
                         "WeatherContract.",
                 locationUri);

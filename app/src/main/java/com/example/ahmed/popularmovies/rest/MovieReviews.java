@@ -118,4 +118,5 @@ public class MovieReviews {
         this.totalResults = totalResults;
     }
 
+
 }

@@ -47,17 +47,16 @@ public class TestUtilities extends AndroidTestCase {
     /*
         Students: Use this to create some default weather values for your database tests.
      */
-    static ContentValues createMovieValues(long locationRowId) {
+    static ContentValues createMovieValues() {
         ContentValues movieValues = new ContentValues();
-        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, locationRowId);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, 1234);
         movieValues.put(MovieContract.MovieEntry.COLUMN_PLOT, "PLOOOOOOT");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, "true");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 1);
         movieValues.put(MovieContract.MovieEntry.COLUMN_POPULARITY, 1.2);
         movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, 1.3);
         movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER, "dd");
         movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, "65");
         movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Asteroids");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_TRAILERS, "5.5");
         return movieValues;
     }
 
@@ -65,55 +64,80 @@ public class TestUtilities extends AndroidTestCase {
         Students: You can uncomment this helper function once you have finished creating the
         LocationEntry part of the WeatherContract.
      */
-    static ContentValues createDummyReview() {
+
+    static ContentValues createDummyReview(long id) {
         // Create a new map of values, where column names are the keys
         ContentValues testValues = new ContentValues();
-        testValues.put(MovieContract.ReviewsEntry.COLUMN_AUTHOR, "Ahmed");
-        testValues.put(MovieContract.ReviewsEntry.COLUMN_CONTENT, "This is a review");
-
-        return testValues;
-    }
-    static ContentValues createDummyReview2() {
-        // Create a new map of values, where column names are the keys
-        ContentValues testValues = new ContentValues();
-        testValues.put(MovieContract.ReviewsEntry.COLUMN_AUTHOR, "Faisal");
-        testValues.put(MovieContract.ReviewsEntry.COLUMN_CONTENT, "This is another review");
-
+        testValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID,id);
+        testValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, "Ahmed");
+        testValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, "This is a review");
+        assertTrue(String.valueOf("review _ID dne movie_id," + testValues.getAsInteger(
+                MovieContract.ReviewEntry.COLUMN_MOVIE_ID) + " " + id + " " + id == testValues.getAsInteger(
+                           MovieContract.ReviewEntry.COLUMN_MOVIE_ID)+""),
+                   testValues.getAsInteger(MovieContract.ReviewEntry.COLUMN_MOVIE_ID) == id);
         return testValues;
     }
 
-    /*
-        Students: You can uncomment this function once you have finished creating the
-        LocationEntry part of the WeatherContract as well as the MovieDBHelper.
-     */
-    static long insertDummyReviewValues(Context context) {
+    static ContentValues createDummyTrailer(long id) {
+        // Create a new map of values, where column names are the keys
+        ContentValues testValues = new ContentValues();
+        testValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID,id);
+        testValues.put(MovieContract.TrailerEntry.COLUMN_URL, "Ahmed");
+        assertTrue(String.valueOf("review _ID dne movie_id," + testValues.getAsInteger(
+                           MovieContract.TrailerEntry.COLUMN_MOVIE_ID) + " " + id + " " + id == testValues.getAsInteger(
+                           MovieContract.TrailerEntry.COLUMN_MOVIE_ID) + ""),
+                   testValues.getAsInteger(MovieContract.TrailerEntry.COLUMN_MOVIE_ID) == id);
+        return testValues;
+    }
+    static ContentValues createDummyTrailer2(long id) {
+        // Create a new map of values, where column names are the keys
+        ContentValues testValues = new ContentValues();
+        testValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID,id);
+        testValues.put(MovieContract.TrailerEntry.COLUMN_URL, "Jim");
+        assertTrue(String.valueOf("review _ID dne movie_id," + testValues.getAsInteger(
+                           MovieContract.TrailerEntry.COLUMN_MOVIE_ID) + " " + id + " " + id == testValues.getAsInteger(
+                           MovieContract.TrailerEntry.COLUMN_MOVIE_ID) + ""),
+                   testValues.getAsInteger(MovieContract.TrailerEntry.COLUMN_MOVIE_ID) == id);
+        return testValues;
+    }
+    static ContentValues createDummyReview2(long id) {
+        // Create a new map of values, where column names are the keys
+        ContentValues testValues = new ContentValues();
+        testValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID,id);
+        testValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, "Faisal");
+        testValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, "This is another review");
+
+        return testValues;
+    }
+    static long insertMovieValues(Context context) {
         // insert our test records into the database
         MovieDBHelper dbHelper = new MovieDBHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues testValues = TestUtilities.createDummyReview();
+        ContentValues testValues = TestUtilities.createMovieValues();
 
-        long locationRowId;
-        locationRowId = db.insert(MovieContract.ReviewsEntry.TABLE_NAME, null, testValues);
-
-        // Verify we got a row back.
-        assertTrue("Error: Failure to insert North Pole Location Values", locationRowId != -1);
-
-        return locationRowId;
-    }
-    static long insertDummyReviewValues2(Context context) {
-        // insert our test records into the database
-        MovieDBHelper dbHelper = new MovieDBHelper(context);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues testValues = TestUtilities.createDummyReview2();
-
-        long locationRowId;
-        locationRowId = db.insert(MovieContract.ReviewsEntry.TABLE_NAME, null, testValues);
+        long movieRowId;
+        movieRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, testValues);
 
         // Verify we got a row back.
-        assertTrue("Error: Failure to insert North Pole Location Values", locationRowId != -1);
+        assertTrue("Error: Failure to insert North Pole Location Values", movieRowId != -1);
 
-        return locationRowId;
+        return movieRowId;
     }
+
+    public static ContentValues createMovieValues2() {
+        ContentValues movieValues = new ContentValues();
+        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, 12345);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_PLOT, "PLOOOOOOT");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 1);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_POPULARITY, 1.2);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, 1.3);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER, "dd");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, "65");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Asteroids2");
+        return movieValues;
+    }
+
+
     /*
         Students: The functions we provide inside of TestProvider use this utility class to test
         the ContentObserver callbacks using the PollingCheck class that we grabbed from the Android

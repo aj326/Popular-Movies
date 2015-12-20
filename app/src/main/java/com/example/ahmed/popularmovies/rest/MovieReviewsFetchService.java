@@ -10,6 +10,6 @@ import retrofit.http.Path;
 public interface MovieReviewsFetchService {
 
     @GET("/3/movie/{id}/reviews?api_key=" + API_KEY.API_KEY)
-    Call<MovieReviews> reviewsList(@Path("id") Integer id);
+    Call<MovieReviews> reviewsList(@Path("id") long id);
 
 }

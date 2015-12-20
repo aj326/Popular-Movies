@@ -25,12 +25,12 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
         mContext = context;
         mCursor = cursor;
         mDataIsValid = cursor != null;
-        mRowIdColumn = mDataIsValid ? mCursor.getColumnIndex("_id") : -1;
+        mRowIdColumn = mDataIsValid ? mCursor.getColumnIndex("movie_id") : -1;
         mDataSetObserver = new NotifyingDataSetObserver();
         if (mDataIsValid) {
             mCursor.registerDataSetObserver(mDataSetObserver);
         }
-        Log.d(LOG_TAG, "in super");
+        Log.d(LOG_TAG, "in super"+ mDataIsValid);
     }
 
 
@@ -43,6 +43,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
         if (mDataIsValid && mCursor != null) {
             return mCursor.getCount();
         }
+        Log.d(LOG_TAG,(mCursor!=null)+"mcursor is null");
         return 0;
     }
 
@@ -86,8 +87,10 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
             if (mDataSetObserver != null) {
                 mCursor.registerDataSetObserver(mDataSetObserver);
             }
-            mRowIdColumn = newCursor.getColumnIndexOrThrow("_id");
+            mRowIdColumn = newCursor.getColumnIndexOrThrow("movie_id");
             mDataIsValid = true;
+            Log.d(LOG_TAG, "datachanged!");
+//            mCursor.registerDataSetObserver(mDataSetObserver);
             notifyDataSetChanged();
         } else {
             mRowIdColumn = -1;
