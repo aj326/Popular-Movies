@@ -60,15 +60,16 @@ public class DetailFragment extends Fragment
     static final String DETAIL_URI = "URI";
     private static final int DETAIL_LOADER = 0;
     private static final int REVIEW_LOADER = 1;
-    private Uri mUri, reviewUri;
+    private static final int TRAILER_LOADER = 2;
+
+    private Uri mUri, reviewUri, trailerUri;
     private long mId;
     private CheckBox isFav;
-//    private CursorDetailAdapter mCursorDetailAdapter;
+    //    private CursorDetailAdapter mCursorDetailAdapter;
     private CursorReviewAdapter mCursorReviewAdapter;
     private ListView mReviewList;
     private SimpleCursorAdapter mSimpleCursorAdapter;
-    private HashMap<String,String> mReviewHash;
-
+    private HashMap<String, String> mReviewHash;
 
 
     public DetailFragment() {
@@ -79,33 +80,25 @@ public class DetailFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
 //        mReviewHash = new HashMap<String, String>();
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        getLoaderManager().initLoader(TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(REVIEW_LOADER, null, this);
 
-//        insertTrailers();
+        insertTrailers();
         insertReviews();
-
 
 
         super.onActivityCreated(savedInstanceState);
     }
+
     private void insertTrailers() {
         final ArrayList<String> trailers = new ArrayList<>();
         final TrailersUrlFetchService trailersUrlFetchService = PopMovieGridFragment.retrofit.create(
                 TrailersUrlFetchService.class);
-//        Log.d(LOG_TAG, "query count: " + mContentResolver.query(
-//                MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
 
-        Cursor query =  getContext().getContentResolver().query(
-                mUri, null, null, null, null);
-        if (!query.moveToFirst()) {
-            Log.e(LOG_TAG, "cant query");
-            return;
-        }
-        Call<MovieVideos> call = trailersUrlFetchService.trailerList(query.getInt(
-                    COLUMNS.MOVIE_ID.ordinal()));
+        Call<MovieVideos> call = trailersUrlFetchService.trailerList(mId);
 
 
-//        Log.d(LOG_TAG, "enqueing trailers call");
+        Log.d(LOG_TAG, "enqueuing trailers call");
         call.enqueue(new Callback<MovieVideos>() {
             @Override
             public void onResponse(Response<MovieVideos> response, Retrofit retrofit) {
@@ -124,22 +117,25 @@ public class DetailFragment extends Fragment
                     MovieVideos movieVideos = response.body();
 
                     List<Video> videos = movieVideos.getVideos();
-
-                    for (Video video : videos) {
-
-                        if (video.getType().equals("Trailer") && video.getSite().equals(
-                                "YouTube")) {
-                            trailers.add(video.getKey());
+                    int numberOfVideos = videos.size();
+                    Vector<ContentValues> cVVector = new Vector<ContentValues>(numberOfVideos);
+                    if (numberOfVideos > 0) {
+                        ContentValues value = new ContentValues();
+                        for (Video video : videos) {
+                            if (video.getType().equals("Trailer") && video.getSite().equals(
+                                    "YouTube")) {
+                                value.put(MovieContract.TrailerEntry.COLUMN_URL, video.getKey());
+                                value.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, mId);
+                                cVVector.add(value);
+                            }
                         }
-                    }
-                    ContentValues value = new ContentValues();
-                    value.put(MovieContract.TrailerEntry.COLUMN_URL, trailers.toString());
-                    getContext().getContentResolver().update(mUri,
-                                                             value, null,
-                                                             null);
-//                    Log.d(LOG_TAG, "updated movie");
-                    trailers.clear();
+                        ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                        cVVector.toArray(cvArray);
+                        getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
+                        Log.d(LOG_TAG, "inserted trailer values");
 
+                        trailers.clear();
+                    }
                 }
             }
 
@@ -151,32 +147,17 @@ public class DetailFragment extends Fragment
             }
         });
     }
+
     private void insertReviews() {
         final ArrayList<List<String>> cleanedUpReviews = new ArrayList<>();
 
-        final MovieReviewsFetchService movieReviewsFetchService = PopMovieGridFragment.retrofit.create(MovieReviewsFetchService.class);
-//        Log.d(LOG_TAG, "query count: " + mContentResolver.query(
-//                MoviesProvider.Movies.CONTENT_URI, null, null, null, null).getCount());
-//        ContentValues values = new ContentValues();
-//        values.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID,mId);
-//        mContentResolver.insert(reviewUri, values);
-//        final Cursor query = mContentResolver.query(
-//                reviewUri, null, null, null, null);
-////        ContentValues value = new ContentValues();
-////        value.put(MovieContract.ReviewEntry.COLUMN_AUTHOR,"TEST");
-////        value.put(MovieContract.ReviewEntry.COLUMN_CONTENT,"REVIEW");
-////        value.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID,Integer.parseInt(
-////                reviewUri.getLastPathSegment()));
-////        mContentResolver.insert(reviewUri,value);
-//        if (!query.moveToFirst()) {
-//            Log.e(LOG_TAG, "cant query review" + reviewUri.toString());
-//            return;
-//        }
+        final MovieReviewsFetchService movieReviewsFetchService = PopMovieGridFragment.retrofit.create(
+                MovieReviewsFetchService.class);
         Call<MovieReviews> call = movieReviewsFetchService.reviewsList(
-               mId);
+                mId);
 
 
-        Log.d(LOG_TAG, "enqueing reviews call");
+        Log.d(LOG_TAG, "enqueuing reviews call");
         call.enqueue(new Callback<MovieReviews>() {
             @Override
             public void onResponse(Response<MovieReviews> response, Retrofit retrofit) {
@@ -191,53 +172,37 @@ public class DetailFragment extends Fragment
                         e.printStackTrace();
                     }
                 }
-                    if(response.body() != null){
-                        MovieReviews movieReviews = response.body();
-                        List<Review> reviews = movieReviews.getReviews();
-                        Log.d(LOG_TAG, "looping reviews"+ reviews.toString());
-                        Vector<ContentValues> cVVector = new Vector<ContentValues>(reviews.size());
-
+                if (response.body() != null) {
+                    MovieReviews movieReviews = response.body();
+                    List<Review> reviews = movieReviews.getReviews();
+                    Log.d(LOG_TAG, "looping reviews" + reviews.toString());
+                    int numberOfReviews = reviews.size();
+                    Vector<ContentValues> cVVector = new Vector<>(numberOfReviews);
+                    if (numberOfReviews > 0) {
                         for (Review review : reviews) {
                             ContentValues value = new ContentValues();
-                            value.put(MovieContract.ReviewEntry.COLUMN_AUTHOR,review.getAuthor());
-                            value.put(MovieContract.ReviewEntry.COLUMN_CONTENT,review.getContent());
+                            value.put(MovieContract.ReviewEntry.COLUMN_AUTHOR,
+                                      review.getAuthor());
+                            value.put(MovieContract.ReviewEntry.COLUMN_CONTENT,
+                                      review.getContent());
                             value.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, mId);
                             cVVector.add(value);
-//                            cleanedUpReviews.add(Arrays.asList(
-//                                    review.getAuthor(), review.getContent()));
-//                            mReviewHash.put(review.getAuthor(), review.getContent());
-
                         }
-                        if ( cVVector.size() > 0) {
-                            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-                            cVVector.toArray(cvArray);
-                            getContext().getContentResolver().bulkInsert(reviewUri, cvArray);
-                        }
-                        Log.d(LOG_TAG,"inserted review values:");
 
+                        ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                        cVVector.toArray(cvArray);
+                        getContext().getContentResolver().bulkInsert(reviewUri, cvArray);
 
-//                        ContentValues value = new ContentValues();
-//                        Type type = new TypeToken<Map<String, String>>(){}.getType();
+                        Log.d(LOG_TAG, "inserted review values:");
 
-//                        value.put(MovieColumns.REVIEWS, gson.toJson(mReviewHash, type));
-//                        mContentResolver.update(mUri,
-//                                                value, null, null);
-//                        DatabaseUtils.dumpCursor(query);
-//                        Log.d("Gson", mReviewHash.keySet().toString());
-//                        BaseAdapter adapter = new HashMapAdapter(mReviewHash);
-//                        mReviewRecyclerView.se/tAdapter(adapter);
-
-//                        mReviewHash.clear();
-//                        cleanedUpReviews.clear();
-
-//                        mList.clear();
                     }
-                else
-                        Log.e(LOG_TAG, "response.body was null!");
+                } else {
+                    Log.d(LOG_TAG, "no reviews found");
+                }
             }
 
 
-                @Override
+            @Override
             public void onFailure(Throwable t) {
 
 
@@ -249,32 +214,53 @@ public class DetailFragment extends Fragment
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.v(LOG_TAG, "In onCreateLoader");
-        if (mUri ==  null) {
+        if (mUri == null) {
             return null;
         }
+        Uri uri;
+        String projection[];
 
 
-//        Log.d("isFav", getActivity().getContentResolver().query(mUri,null,null,null,null).getInt(COLUMNS.IS_FAVORITE.ordinal()) + "");
+        switch (id){
+            case DETAIL_LOADER:
+            {
+                uri = mUri;
+                projection = null;
+                break;
+            }
+            case REVIEW_LOADER:
+            {
+                uri = reviewUri;
+                projection = new String[]{
+                        MovieContract.ReviewEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
+                        MovieContract.ReviewEntry.COLUMN_AUTHOR,
+                        MovieContract.ReviewEntry.COLUMN_CONTENT,
+                };
+                break;
+            }
+            case TRAILER_LOADER:
+            {
+                uri = trailerUri;
+                projection = new String[]{
+                        MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
+                        MovieContract.TrailerEntry.COLUMN_URL
+                };
+                break;
+            }
+            default:
+                throw new IllegalArgumentException("Loader ID is incorrect!");
 
-
-        // Now create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-        Uri uri = id==REVIEW_LOADER? reviewUri:mUri;
-        String projection[] = id==REVIEW_LOADER?
-                new String[]{                     MovieContract.ReviewEntry.TABLE_NAME+"."+MovieContract.ReviewEntry._ID,
-                     MovieContract.ReviewEntry.COLUMN_AUTHOR,
-                     MovieContract.ReviewEntry.COLUMN_CONTENT,
-        }:
-                null;
+        }
         return new CursorLoader(
                 getActivity(),
                 uri,
                 projection,
-                MovieContract.MovieEntry.TABLE_NAME+"."+MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=? ",
+                MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "=? ",
                 new String[]{Long.toString(mId)},
                 null
         );
     }
+
     //TODO use a viewholder for views here? Generic class for both views
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -331,24 +317,27 @@ public class DetailFragment extends Fragment
                 Log.v(LOG_TAG, "Review Loader");
                 MatrixCursor matrixCursor = new MatrixCursor(new String[]{
                         MovieContract.ReviewEntry._ID,
-                                                                                               MovieContract.ReviewEntry.COLUMN_AUTHOR,
-                                                                                               MovieContract.ReviewEntry.COLUMN_CONTENT});
+                        MovieContract.ReviewEntry.COLUMN_AUTHOR,
+                        MovieContract.ReviewEntry.COLUMN_CONTENT});
 //                mReviewRecyclerView.
-                        do{
-                            Log.d(LOG_TAG,"LOOOOOOOOOOOPING");
-                            matrixCursor.addRow(new Object[]
-                                    {
-                                            data.getString(data.getColumnIndex(MovieContract.ReviewEntry._ID)),
-                                    data.getString(data.getColumnIndex(MovieContract.ReviewEntry.COLUMN_AUTHOR)),
-                                    data.getString(data.getColumnIndex(MovieContract.ReviewEntry.COLUMN_CONTENT))}
-                                                 );
-                        }
-                        while (data.moveToNext());
+                do {
+                    Log.d(LOG_TAG, "LOOOOOOOOOOOPING");
+                    matrixCursor.addRow(new Object[]
+                                                {
+                                                        data.getString(data.getColumnIndex(
+                                                                MovieContract.ReviewEntry._ID)),
+                                                        data.getString(data.getColumnIndex(
+                                                                MovieContract.ReviewEntry.COLUMN_AUTHOR)),
+                                                        data.getString(data.getColumnIndex(
+                                                                MovieContract.ReviewEntry.COLUMN_CONTENT))}
+                    );
+                }
+                while (data.moveToNext());
                 DatabaseUtils.dumpCursor(matrixCursor);
-                MergeCursor mergeCursor = new MergeCursor(new Cursor[] { matrixCursor, data });
+                MergeCursor mergeCursor = new MergeCursor(new Cursor[]{matrixCursor, data});
                 mSimpleCursorAdapter.changeCursor(mergeCursor);
                 return;
-               }
+        }
     }
 
 
@@ -357,7 +346,7 @@ public class DetailFragment extends Fragment
 //            starred.setChecked(true);
 //            starred.setButtonDrawable(android.R.drawable.btn_star_big_on);
 //        }
-        // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+    // If onCreateOptionsMenu has already happened, we need to update the share intent now.
 
 
     @Override
@@ -366,25 +355,28 @@ public class DetailFragment extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
 //        LinearLayout rootview= (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
 //                                                                   container,
 //                                                               false);
-        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.fragment_detail_header, mReviewList,
+        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.fragment_detail_header,
+                                                        mReviewList,
                                                         false);
 //        View rootview = View.inflate(getContext(), R.layout.fragment_detail_header, mReviewList);
-        mReviewList = (ListView) inflater.inflate(R.layout.listview_review,null,false);
+        mReviewList = (ListView) inflater.inflate(R.layout.listview_review, null, false);
         mReviewList.addHeaderView(header);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
             mId = Long.parseLong(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
             reviewUri = MovieContract.MovieEntry.buildMovieIdWithReview(mId);
-            Log.d("reviewUri",reviewUri.toString());
-
+            trailerUri = MovieContract.MovieEntry.buildMovieIdWithTrailer(mId);
+            Log.d("reviewUri", reviewUri.toString());
+            Log.d("trailerUri", trailerUri.toString());
         }
-        isFav = (CheckBox)header.findViewById(R.id.star);
+        isFav = (CheckBox) header.findViewById(R.id.star);
         isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -410,15 +402,15 @@ public class DetailFragment extends Fragment
         };
         mReviewList.setDividerHeight(0);
 //mReviewList = new
-        mSimpleCursorAdapter = new SimpleCursorAdapter(getContext(),R.layout.list_item_review,null,columns,to,0);
-    mReviewList.setAdapter(mSimpleCursorAdapter);
+        mSimpleCursorAdapter = new SimpleCursorAdapter(getContext(), R.layout.list_item_review,
+                                                       null, columns, to, 0);
+        mReviewList.setAdapter(mSimpleCursorAdapter);
 //        LinearLayout myContainer = (LinearLayout) rootview.findViewById(R.id.reviews_container);
 //                myContainer.addView(mReviewList);
 
 
 //        mCursorReviewAdapter = new CursorReviewAdapter(getContext(),null);
-        Log.d(LOG_TAG,"set up mReviewList");
-
+        Log.d(LOG_TAG, "set up mReviewList");
 
 
         return mReviewList;
@@ -478,7 +470,16 @@ public static final String REVIEWS = "reviews";
 public static final String IS_FAVORITE = "is_favorite";
      */
     public enum COLUMNS {
-        _ID, MOVIE_ID, TITLE, POSTER, PLOT, RELEASE_DATE, POPULARITY, RATING, SORT_BY_RATING, IS_FAVORITE
+        _ID,
+        MOVIE_ID,
+        TITLE,
+        POSTER,
+        PLOT,
+        RELEASE_DATE,
+        POPULARITY,
+        RATING,
+        SORT_BY_RATING,
+        IS_FAVORITE
     }
 }
 

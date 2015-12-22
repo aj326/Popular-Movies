@@ -9,5 +9,5 @@ import retrofit.http.Path;
  */
 public interface TrailersUrlFetchService {
     @GET("/3/movie/{id}/videos?api_key=" + API_KEY.API_KEY)
-    Call<MovieVideos> trailerList(@Path("id") Integer id);
+    Call<MovieVideos> trailerList(@Path("id") long id);
 }
