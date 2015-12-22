@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies.data;
+package com.example.ahmed.popularmovies.provider;
 
 import android.annotation.TargetApi;
 import android.content.ContentProvider;

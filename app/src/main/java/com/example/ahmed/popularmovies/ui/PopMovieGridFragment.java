@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.ui;
 
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
@@ -20,11 +20,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
-import com.example.ahmed.popularmovies.rest.CursorMovieAdapter;
-import com.example.ahmed.popularmovies.rest.Movie;
-import com.example.ahmed.popularmovies.rest.MoviesDetailsFetchService;
-import com.example.ahmed.popularmovies.rest.MoviesFromTMDB;
+import com.example.ahmed.popularmovies.R;
+import com.example.ahmed.popularmovies.adapters.CursorMovieAdapter;
+import com.example.ahmed.popularmovies.pojo.Movie;
+import com.example.ahmed.popularmovies.pojo.MoviesFromTMDB;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.retrofit.DetailsFetchService;
+import com.example.ahmed.popularmovies.utils.Constants;
 import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.okhttp.ResponseBody;
 
@@ -36,7 +38,6 @@ import java.util.List;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Converter;
-import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
@@ -52,14 +53,8 @@ import retrofit.Retrofit;
 public class PopMovieGridFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private int mPosition;
     private RecyclerView mRecyclerView;
-    private static final int CURSOR_LOADER_ID = 0;
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
-    private static final String BASE_URL = "http://api.themoviedb.org";
-    public static Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(
-            GsonConverterFactory.create()).build();
-    private final String[] projections= {"ID","TRAILERS","REVIEWS"};
     ProgressDialog mProgressDialog;
     private CursorMovieAdapter mMoviesAdapter;
 
@@ -78,7 +73,7 @@ public class PopMovieGridFragment extends Fragment
 
 
 
-        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+        getLoaderManager().initLoader(Constants.CURSOR_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
 
 
@@ -88,7 +83,7 @@ public class PopMovieGridFragment extends Fragment
     public void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "resume called");
-        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(Constants.CURSOR_LOADER_ID, null, this);
 
     }
 
@@ -125,8 +120,8 @@ public class PopMovieGridFragment extends Fragment
                                                      this.getString(R.string.pop_desc));
         final int MAX_PAGES = 6;
 
-        retrofit.client().networkInterceptors().add(new StethoInterceptor());
-        MoviesDetailsFetchService service = retrofit.create(MoviesDetailsFetchService.class);
+        Constants.retrofit.client().networkInterceptors().add(new StethoInterceptor());
+        DetailsFetchService service = Constants.retrofit.create(DetailsFetchService.class);
         for (int i = 1; i < MAX_PAGES; i++) {
             Call<MoviesFromTMDB> call = service.movieList(i);
             call.enqueue(new Callback<MoviesFromTMDB>() {

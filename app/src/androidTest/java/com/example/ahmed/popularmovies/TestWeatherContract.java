@@ -18,7 +18,7 @@ package com.example.ahmed.popularmovies;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieContract;
 
 /*
     Students: This is NOT a complete test for the WeatherContract --- just for the functions

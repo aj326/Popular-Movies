@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.ui;
 
 /*
  * Copyright (C) 2014 The Android Open Source Project
@@ -22,6 +22,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.ahmed.popularmovies.R;
+
+import com.example.ahmed.popularmovies.utils.Constants;
+
 
 public class DetailActivity extends ActionBarActivity {
 
@@ -31,7 +35,7 @@ public class DetailActivity extends ActionBarActivity {
         setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            arguments.putParcelable(DetailFragment.DETAIL_URI, getIntent().getData());
+            arguments.putParcelable(Constants.DETAIL_URI, getIntent().getData());
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(arguments);

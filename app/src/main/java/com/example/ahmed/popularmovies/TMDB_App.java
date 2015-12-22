@@ -7,7 +7,7 @@ import com.facebook.stetho.Stetho;
 /**
  * Created by ahmed on 12/2/15.
  */
-public class MyApplication extends Application {
+public class TMDB_App extends Application {
     public void onCreate() {
         super.onCreate();
         Stetho.initialize(

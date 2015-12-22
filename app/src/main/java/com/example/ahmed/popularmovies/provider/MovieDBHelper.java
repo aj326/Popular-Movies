@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies.data;
+package com.example.ahmed.popularmovies.provider;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

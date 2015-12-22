@@ -20,8 +20,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
-import com.example.ahmed.popularmovies.data.MovieDBHelper;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieDBHelper;
 
 import java.util.HashSet;
 

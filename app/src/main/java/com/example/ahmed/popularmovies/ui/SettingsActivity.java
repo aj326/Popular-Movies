@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.ui;
 
 import android.annotation.TargetApi;
 import android.content.Intent;

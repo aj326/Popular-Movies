@@ -22,7 +22,7 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieContract;
 
 /*
     Note: This is not a complete set of tests of the Sunshine ContentProvider, but it does test

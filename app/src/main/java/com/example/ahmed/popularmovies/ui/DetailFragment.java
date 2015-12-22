@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.ui;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -25,14 +25,15 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
-import com.example.ahmed.popularmovies.rest.CursorReviewAdapter;
-import com.example.ahmed.popularmovies.rest.MovieReviews;
-import com.example.ahmed.popularmovies.rest.MovieReviewsFetchService;
-import com.example.ahmed.popularmovies.rest.MovieVideos;
-import com.example.ahmed.popularmovies.rest.Review;
-import com.example.ahmed.popularmovies.rest.TrailersUrlFetchService;
-import com.example.ahmed.popularmovies.rest.Video;
+import com.example.ahmed.popularmovies.R;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.adapters.CursorReviewAdapter;
+import com.example.ahmed.popularmovies.pojo.MovieReviews;
+import com.example.ahmed.popularmovies.retrofit.ReviewsFetchService;
+import com.example.ahmed.popularmovies.pojo.MovieVideos;
+import com.example.ahmed.popularmovies.pojo.Review;
+import com.example.ahmed.popularmovies.retrofit.TrailersFetchService;
+import com.example.ahmed.popularmovies.pojo.Video;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
 
@@ -48,6 +49,7 @@ import retrofit.Callback;
 import retrofit.Converter;
 import retrofit.Response;
 import retrofit.Retrofit;
+import com.example.ahmed.popularmovies.utils.Constants;
 
 /**
  * Created by ahmed on 12/2/15.
@@ -56,15 +58,11 @@ public class DetailFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
 
-    private static final String LOG_TAG = DetailFragment.class.getSimpleName();
-    static final String DETAIL_URI = "URI";
-    private static final int DETAIL_LOADER = 0;
-    private static final int REVIEW_LOADER = 1;
-    private static final int TRAILER_LOADER = 2;
-
     private Uri mUri, reviewUri, trailerUri;
     private long mId;
     private CheckBox isFav;
+    String LOG_TAG = DetailFragment.class.getSimpleName();
+
     //    private CursorDetailAdapter mCursorDetailAdapter;
     private CursorReviewAdapter mCursorReviewAdapter;
     private ListView mReviewList;
@@ -79,9 +77,9 @@ public class DetailFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
 //        mReviewHash = new HashMap<String, String>();
-        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
-        getLoaderManager().initLoader(TRAILER_LOADER, null, this);
-        getLoaderManager().initLoader(REVIEW_LOADER, null, this);
+        getLoaderManager().initLoader(Constants.DETAIL_LOADER, null, this);
+        getLoaderManager().initLoader(Constants.TRAILER_LOADER, null, this);
+        getLoaderManager().initLoader(Constants.REVIEW_LOADER, null, this);
 
         insertTrailers();
         insertReviews();
@@ -92,10 +90,10 @@ public class DetailFragment extends Fragment
 
     private void insertTrailers() {
         final ArrayList<String> trailers = new ArrayList<>();
-        final TrailersUrlFetchService trailersUrlFetchService = PopMovieGridFragment.retrofit.create(
-                TrailersUrlFetchService.class);
+        final TrailersFetchService trailersFetchService = Constants.retrofit.create(
+                TrailersFetchService.class);
 
-        Call<MovieVideos> call = trailersUrlFetchService.trailerList(mId);
+        Call<MovieVideos> call = trailersFetchService.trailerList(mId);
 
 
         Log.d(LOG_TAG, "enqueuing trailers call");
@@ -129,12 +127,14 @@ public class DetailFragment extends Fragment
                                 cVVector.add(value);
                             }
                         }
-                        ContentValues[] cvArray = new ContentValues[cVVector.size()];
-                        cVVector.toArray(cvArray);
-                        getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
-                        Log.d(LOG_TAG, "inserted trailer values");
-
-                        trailers.clear();
+                        if (cVVector.size() > 0) {
+                            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                            cVVector.toArray(cvArray);
+                            getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
+                            Log.d(LOG_TAG, "inserted trailer values");
+                        } else {
+                            Log.v(LOG_TAG, "no trailers found");
+                        }
                     }
                 }
             }
@@ -151,9 +151,9 @@ public class DetailFragment extends Fragment
     private void insertReviews() {
         final ArrayList<List<String>> cleanedUpReviews = new ArrayList<>();
 
-        final MovieReviewsFetchService movieReviewsFetchService = PopMovieGridFragment.retrofit.create(
-                MovieReviewsFetchService.class);
-        Call<MovieReviews> call = movieReviewsFetchService.reviewsList(
+        final ReviewsFetchService reviewsFetchService = Constants.retrofit.create(
+                ReviewsFetchService.class);
+        Call<MovieReviews> call = reviewsFetchService.reviewsList(
                 mId);
 
 
@@ -197,7 +197,7 @@ public class DetailFragment extends Fragment
 
                     }
                 } else {
-                    Log.d(LOG_TAG, "no reviews found");
+                    Log.v(LOG_TAG, "no reviews found");
                 }
             }
 
@@ -221,15 +221,13 @@ public class DetailFragment extends Fragment
         String projection[];
 
 
-        switch (id){
-            case DETAIL_LOADER:
-            {
+        switch (id) {
+            case Constants.DETAIL_LOADER: {
                 uri = mUri;
                 projection = null;
                 break;
             }
-            case REVIEW_LOADER:
-            {
+            case Constants.REVIEW_LOADER: {
                 uri = reviewUri;
                 projection = new String[]{
                         MovieContract.ReviewEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
@@ -238,8 +236,7 @@ public class DetailFragment extends Fragment
                 };
                 break;
             }
-            case TRAILER_LOADER:
-            {
+            case Constants.TRAILER_LOADER: {
                 uri = trailerUri;
                 projection = new String[]{
                         MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
@@ -279,32 +276,32 @@ public class DetailFragment extends Fragment
 //        data.()
 
         switch (loader.getId()) {
-            case DETAIL_LOADER:
+            case Constants.DETAIL_LOADER:
                 ImageView poster = (ImageView) getView().findViewById(R.id.poster);
                 Picasso.with(getContext()).load(
-                        data.getString(COLUMNS.POSTER.ordinal())).resizeDimen(
+                        data.getString(Constants.DETAIL_COLUMNS.POSTER.ordinal())).resizeDimen(
                         R.dimen.img_width, R.dimen.img_height)
                         .into(poster);
 
                 TextView title = (TextView) getView().findViewById(R.id.movie_title);
-                title.setText(data.getString(COLUMNS.TITLE.ordinal()));
+                title.setText(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
 
-                getActivity().setTitle(data.getString(COLUMNS.TITLE.ordinal()));
+                getActivity().setTitle(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
 
                 TextView release_date = (TextView) getView().findViewById(R.id.movie_year);
-                release_date.setText(data.getString(COLUMNS.RELEASE_DATE.ordinal()));
+                release_date.setText(data.getString(Constants.DETAIL_COLUMNS.RELEASE_DATE.ordinal()));
 
                 TextView plot = (TextView) getView().findViewById(R.id.plot);
-                plot.setText(data.getString(COLUMNS.PLOT.ordinal()));
+                plot.setText(data.getString(Constants.DETAIL_COLUMNS.PLOT.ordinal()));
 
                 TextView rating = (TextView) getView().findViewById(R.id.rating);
-                rating.setText(data.getString(COLUMNS.RATING.ordinal()));
+                rating.setText(data.getString(Constants.DETAIL_COLUMNS.RATING.ordinal()));
 
 
 //        values.put(MovieColumns.IS_FAVORITE, isFav.isChecked() ? 1 : 0);
                 Log.d(LOG_TAG, "onLoadFinished, isFav is " + isFav.isChecked());
 
-                isFav.setChecked((data.getInt(COLUMNS.IS_FAVORITE.ordinal()) == 1));
+                isFav.setChecked((data.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
 //                mCursorDetailAdapter.swapCursor(data);
 
                 Log.v(LOG_TAG, "Review Loader");
@@ -313,7 +310,7 @@ public class DetailFragment extends Fragment
 
                 return;
 
-            case REVIEW_LOADER:
+            case Constants.REVIEW_LOADER:
                 Log.v(LOG_TAG, "Review Loader");
                 MatrixCursor matrixCursor = new MatrixCursor(new String[]{
                         MovieContract.ReviewEntry._ID,
@@ -341,7 +338,7 @@ public class DetailFragment extends Fragment
     }
 
 
-//        if (data.getInt(COLUMNS.IS_FAVORITE.ordinal()) == 1) {
+//        if (data.getInt(DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1) {
 //            Log.d("isFav", starred.isChecked() + "");
 //            starred.setChecked(true);
 //            starred.setButtonDrawable(android.R.drawable.btn_star_big_on);
@@ -369,7 +366,7 @@ public class DetailFragment extends Fragment
         mReviewList.addHeaderView(header);
         Bundle arguments = getArguments();
         if (arguments != null) {
-            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+            mUri = arguments.getParcelable(Constants.DETAIL_URI);
             mId = Long.parseLong(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
             reviewUri = MovieContract.MovieEntry.buildMovieIdWithReview(mId);
             trailerUri = MovieContract.MovieEntry.buildMovieIdWithTrailer(mId);
@@ -444,42 +441,5 @@ public class DetailFragment extends Fragment
 //            }
     }
 
-    /*
-@DataType(DataType.Type.TEXT) @NotNull
-public static final String POSTER = "poster";
-
-@DataType(DataType.Type.TEXT) @NotNull
-public static final String PLOT = "plot";
-
-@DataType(DataType.Type.REAL) @NotNull
-public static final String RATING = "rating";
-
-@DataType(DataType.Type.REAL) @NotNull
-public static final String POPULARITY = "popularity";
-
-@DataType(DataType.Type.TEXT) @NotNull
-public static final String RELEASE_DATE = "release_date";
-
-@DataType(DataType.Type.TEXT) @NotNull
-public static final String TRAILERS = "trailers";
-
-@DataType(DataType.Type.TEXT) @NotNull
-public static final String REVIEWS = "reviews";
-
-@DataType(DataType.Type.INTEGER) @NotNull
-public static final String IS_FAVORITE = "is_favorite";
-     */
-    public enum COLUMNS {
-        _ID,
-        MOVIE_ID,
-        TITLE,
-        POSTER,
-        PLOT,
-        RELEASE_DATE,
-        POPULARITY,
-        RATING,
-        SORT_BY_RATING,
-        IS_FAVORITE
-    }
 }
 

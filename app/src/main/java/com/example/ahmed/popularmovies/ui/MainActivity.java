@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies;
+package com.example.ahmed.popularmovies.ui;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -8,14 +8,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.ahmed.popularmovies.R;
 import com.example.ahmed.popularmovies.R.layout;
-import com.example.ahmed.popularmovies.rest.CursorMovieAdapter;
+import com.example.ahmed.popularmovies.adapters.CursorMovieAdapter;
 import com.facebook.stetho.Stetho;
+
+import com.example.ahmed.popularmovies.utils.Constants;
 
 public class MainActivity extends AppCompatActivity implements CursorMovieAdapter.Callback {
     public boolean mTwoPane;
 
-    private static final String DETAILFRAGMENT_TAG = "DFTAG";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,13 +75,13 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             // fragment transaction.
             Bundle args = new Bundle();
             Log.d("MainAct movieUri", movieUri.toString());
-            args.putParcelable(DetailFragment.DETAIL_URI, movieUri);
+            args.putParcelable(Constants.DETAIL_URI, movieUri);
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(args);
 
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                    .replace(R.id.movie_detail_container, fragment, Constants.DETAILFRAGMENT_TAG)
                     .commit();
             Log.v("MainActivity","Completed replacing detail cont");
         } else {
