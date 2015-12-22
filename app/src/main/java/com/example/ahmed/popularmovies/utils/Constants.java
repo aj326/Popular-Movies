@@ -7,8 +7,10 @@ import retrofit.Retrofit;
  * Created by ahmed on 12/22/15.
  */
 public interface Constants {
-    public static final String API_KEY = "0d2f78cd5f086e8d35e0274952749495";
+    String API_KEY = "0d2f78cd5f086e8d35e0274952749495";
     String BASE_URL = "http://api.themoviedb.org";
+
+
     Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(
             GsonConverterFactory.create()).build();
     String DETAIL_URI = "URI";

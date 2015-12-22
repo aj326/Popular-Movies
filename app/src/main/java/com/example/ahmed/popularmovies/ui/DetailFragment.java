@@ -3,8 +3,6 @@ package com.example.ahmed.popularmovies.ui;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.database.MatrixCursor;
-import android.database.MergeCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -26,14 +24,15 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.example.ahmed.popularmovies.R;
-import com.example.ahmed.popularmovies.provider.MovieContract;
 import com.example.ahmed.popularmovies.adapters.CursorReviewAdapter;
 import com.example.ahmed.popularmovies.pojo.MovieReviews;
-import com.example.ahmed.popularmovies.retrofit.ReviewsFetchService;
 import com.example.ahmed.popularmovies.pojo.MovieVideos;
 import com.example.ahmed.popularmovies.pojo.Review;
-import com.example.ahmed.popularmovies.retrofit.TrailersFetchService;
 import com.example.ahmed.popularmovies.pojo.Video;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.retrofit.ReviewsFetchService;
+import com.example.ahmed.popularmovies.retrofit.TrailersFetchService;
+import com.example.ahmed.popularmovies.utils.Constants;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
 
@@ -49,7 +48,6 @@ import retrofit.Callback;
 import retrofit.Converter;
 import retrofit.Response;
 import retrofit.Retrofit;
-import com.example.ahmed.popularmovies.utils.Constants;
 
 /**
  * Created by ahmed on 12/2/15.
@@ -289,7 +287,8 @@ public class DetailFragment extends Fragment
                 getActivity().setTitle(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
 
                 TextView release_date = (TextView) getView().findViewById(R.id.movie_year);
-                release_date.setText(data.getString(Constants.DETAIL_COLUMNS.RELEASE_DATE.ordinal()));
+                release_date.setText(
+                        data.getString(Constants.DETAIL_COLUMNS.RELEASE_DATE.ordinal()));
 
                 TextView plot = (TextView) getView().findViewById(R.id.plot);
                 plot.setText(data.getString(Constants.DETAIL_COLUMNS.PLOT.ordinal()));
@@ -301,38 +300,15 @@ public class DetailFragment extends Fragment
 //        values.put(MovieColumns.IS_FAVORITE, isFav.isChecked() ? 1 : 0);
                 Log.d(LOG_TAG, "onLoadFinished, isFav is " + isFav.isChecked());
 
-                isFav.setChecked((data.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
-//                mCursorDetailAdapter.swapCursor(data);
+                isFav.setChecked(
+                        (data.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
 
-                Log.v(LOG_TAG, "Review Loader");
-////                mCursorReviewAdapter.swapCursor(data);
-////                mCursorReviewAdapter.notifyDataSetChanged();
 
                 return;
 
             case Constants.REVIEW_LOADER:
                 Log.v(LOG_TAG, "Review Loader");
-                MatrixCursor matrixCursor = new MatrixCursor(new String[]{
-                        MovieContract.ReviewEntry._ID,
-                        MovieContract.ReviewEntry.COLUMN_AUTHOR,
-                        MovieContract.ReviewEntry.COLUMN_CONTENT});
-//                mReviewRecyclerView.
-                do {
-                    Log.d(LOG_TAG, "LOOOOOOOOOOOPING");
-                    matrixCursor.addRow(new Object[]
-                                                {
-                                                        data.getString(data.getColumnIndex(
-                                                                MovieContract.ReviewEntry._ID)),
-                                                        data.getString(data.getColumnIndex(
-                                                                MovieContract.ReviewEntry.COLUMN_AUTHOR)),
-                                                        data.getString(data.getColumnIndex(
-                                                                MovieContract.ReviewEntry.COLUMN_CONTENT))}
-                    );
-                }
-                while (data.moveToNext());
-                DatabaseUtils.dumpCursor(matrixCursor);
-                MergeCursor mergeCursor = new MergeCursor(new Cursor[]{matrixCursor, data});
-                mSimpleCursorAdapter.changeCursor(mergeCursor);
+                mSimpleCursorAdapter.changeCursor(data);
                 return;
         }
     }

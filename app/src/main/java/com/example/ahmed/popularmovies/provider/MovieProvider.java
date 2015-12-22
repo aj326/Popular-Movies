@@ -175,7 +175,7 @@ public class MovieProvider extends ContentProvider {
             case MOVIE_WITH_TRAILER: {
                 retCursor = sJoinedMoviesTrailersQueryBuilder.query(
                         mOpenHelper.getReadableDatabase(), projection, mSelection, new String[]{
-                        uri.getLastPathSegment()}, null, null, sortOrder);
+                                uri.getLastPathSegment()}, null, null, sortOrder);
                 break;
             }
             case MOVIE_WITH_REVIEW: {
@@ -232,8 +232,10 @@ public class MovieProvider extends ContentProvider {
         Uri returnUri;
 
         switch (match) {
-            case MOVIE:case MOVIE_WITH_ID:{
-                long _id = db.insertOrThrow(MovieContract.MovieEntry.TABLE_NAME, null, values);
+            case MOVIE:
+            case MOVIE_WITH_ID: {
+                long _id = db.insertWithOnConflict(MovieContract.MovieEntry.TABLE_NAME, null,
+                                                   values, SQLiteDatabase.CONFLICT_REPLACE);
                 if (_id > 0) {
                     returnUri = MovieContract.MovieEntry.buildMovieUri(values.getAsLong(
                             MovieContract.MovieEntry.COLUMN_MOVIE_ID));
@@ -242,8 +244,10 @@ public class MovieProvider extends ContentProvider {
                 }
                 break;
             }
-            case REVIEW: case MOVIE_WITH_REVIEW:{
-                long _id = db.insertOrThrow(MovieContract.ReviewEntry.TABLE_NAME, null, values);
+            case REVIEW:
+            case MOVIE_WITH_REVIEW: {
+                long _id = db.insertWithOnConflict(MovieContract.ReviewEntry.TABLE_NAME, null,
+                                                   values, SQLiteDatabase.CONFLICT_REPLACE);
                 if (_id > 0) {
                     returnUri = MovieContract.MovieEntry.buildMovieIdWithReview(values.getAsLong(
                             MovieContract.ReviewEntry.COLUMN_MOVIE_ID));
@@ -252,8 +256,10 @@ public class MovieProvider extends ContentProvider {
                 }
                 break;
             }
-            case TRAILER: case MOVIE_WITH_TRAILER: {
-                long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
+            case TRAILER:
+            case MOVIE_WITH_TRAILER: {
+                long _id = db.insertWithOnConflict(MovieContract.TrailerEntry.TABLE_NAME, null,
+                                                   values, SQLiteDatabase.CONFLICT_REPLACE);
                 if (_id > 0) {
                     returnUri = MovieContract.MovieEntry.buildMovieIdWithTrailer(values.getAsLong(
                             MovieContract.TrailerEntry.COLUMN_MOVIE_ID));
@@ -262,7 +268,7 @@ public class MovieProvider extends ContentProvider {
                 }
                 break;
             }
-            
+
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -314,19 +320,28 @@ public class MovieProvider extends ContentProvider {
         int rowsUpdated;
 
         switch (match) {
-            case MOVIE: case MOVIE_WITH_ID:{
-                rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
-                                        selectionArgs);
+            case MOVIE:
+            case MOVIE_WITH_ID: {
+                rowsUpdated = db.updateWithOnConflict(MovieContract.MovieEntry.TABLE_NAME, values,
+                                                      selection,
+                                                      selectionArgs,
+                                                      SQLiteDatabase.CONFLICT_REPLACE);
                 break;
             }
-            case REVIEW: case MOVIE_WITH_REVIEW: {
-                rowsUpdated = db.update(MovieContract.ReviewEntry.TABLE_NAME, values, selection,
-                                        selectionArgs);
+            case REVIEW:
+            case MOVIE_WITH_REVIEW: {
+                rowsUpdated = db.updateWithOnConflict(MovieContract.ReviewEntry.TABLE_NAME, values,
+                                                      selection,
+                                                      selectionArgs,
+                                                      SQLiteDatabase.CONFLICT_REPLACE);
                 break;
             }
-            case TRAILER: case MOVIE_WITH_TRAILER:{
-                rowsUpdated = db.update(MovieContract.TrailerEntry.TABLE_NAME, values, selection,
-                                        selectionArgs);
+            case TRAILER:
+            case MOVIE_WITH_TRAILER: {
+                rowsUpdated = db.updateWithOnConflict(MovieContract.TrailerEntry.TABLE_NAME, values,
+                                                      selection,
+                                                      selectionArgs,
+                                                      SQLiteDatabase.CONFLICT_REPLACE);
                 break;
             }
             default:
@@ -337,7 +352,8 @@ public class MovieProvider extends ContentProvider {
         }
         return rowsUpdated;
     }
-    //// TODO: 12/22/15 clean up code! make a local variable hold the table name. 
+
+    //// TODO: 12/22/15 clean up code! make a local variable hold the table name.
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -345,12 +361,15 @@ public class MovieProvider extends ContentProvider {
         int returnCount;
 
         switch (match) {
-            case MOVIE:case MOVIE_WITH_ID:
+            case MOVIE:
+            case MOVIE_WITH_ID:
                 db.beginTransaction();
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                        long _id = db.insertWithOnConflict(MovieContract.MovieEntry.TABLE_NAME,
+                                                           null, value,
+                                                           SQLiteDatabase.CONFLICT_REPLACE);
                         if (_id != -1) {
                             returnCount++;
                         }
@@ -362,12 +381,15 @@ public class MovieProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
-            case REVIEW: case MOVIE_WITH_REVIEW:
+            case REVIEW:
+            case MOVIE_WITH_REVIEW:
                 db.beginTransaction();
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, value);
+                        long _id = db.insertWithOnConflict(MovieContract.ReviewEntry.TABLE_NAME,
+                                                           null, value,
+                                                           SQLiteDatabase.CONFLICT_REPLACE);
                         if (_id != -1) {
                             returnCount++;
                         }
@@ -379,12 +401,15 @@ public class MovieProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
-            case TRAILER: case MOVIE_WITH_TRAILER:
+            case TRAILER:
+            case MOVIE_WITH_TRAILER:
                 db.beginTransaction();
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
+                        long _id = db.insertWithOnConflict(MovieContract.TrailerEntry.TABLE_NAME,
+                                                           null, value,
+                                                           SQLiteDatabase.CONFLICT_REPLACE);
                         if (_id != -1) {
                             returnCount++;
                         }
