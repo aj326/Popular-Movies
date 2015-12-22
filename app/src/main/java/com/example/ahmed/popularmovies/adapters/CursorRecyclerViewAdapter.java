@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies.rest;
+package com.example.ahmed.popularmovies.adapters;
 
 import android.content.Context;
 import android.database.Cursor;

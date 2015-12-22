@@ -1,5 +1,5 @@
 
-package com.example.ahmed.popularmovies.rest;
+package com.example.ahmed.popularmovies.pojo;
 
 import android.net.Uri;
 

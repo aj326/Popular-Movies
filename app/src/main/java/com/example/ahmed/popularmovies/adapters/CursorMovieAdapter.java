@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies.rest;
+package com.example.ahmed.popularmovies.adapters;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -13,10 +13,11 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
-import com.example.ahmed.popularmovies.DetailFragment;
 import com.example.ahmed.popularmovies.R;
-import com.example.ahmed.popularmovies.data.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieContract;
 import com.squareup.picasso.Picasso;
+
+import com.example.ahmed.popularmovies.utils.Constants;
 
 /**
  * Created by ahmed on 10/18/15.
@@ -90,7 +91,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
             }
         });
         viewHolder.isFav.setChecked(
-                (cursor.getInt(DetailFragment.COLUMNS.IS_FAVORITE.ordinal()) == 1));
+                (cursor.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
 
 //        viewHolder.isFav.setOnClickListener(new View.OnClickListener() {
 //            @Override

@@ -19,8 +19,8 @@ import android.content.UriMatcher;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
-import com.example.ahmed.popularmovies.data.MovieProvider;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieProvider;
 
 /*
     Uncomment this class when you are ready to test your UriMatcher.  Note that this class utilizes

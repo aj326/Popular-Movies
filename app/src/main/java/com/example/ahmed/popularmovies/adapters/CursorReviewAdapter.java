@@ -1,4 +1,4 @@
-package com.example.ahmed.popularmovies.rest;
+package com.example.ahmed.popularmovies.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.ahmed.popularmovies.R;
-import com.example.ahmed.popularmovies.data.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieContract;
 
 /**
  * Created by ahmed on 10/18/15.

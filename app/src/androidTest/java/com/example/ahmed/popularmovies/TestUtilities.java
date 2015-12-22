@@ -10,8 +10,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.test.AndroidTestCase;
 
-import com.example.ahmed.popularmovies.data.MovieContract;
-import com.example.ahmed.popularmovies.data.MovieDBHelper;
+import com.example.ahmed.popularmovies.provider.MovieContract;
+import com.example.ahmed.popularmovies.provider.MovieDBHelper;
 import com.example.ahmed.popularmovies.utils.PollingCheck;
 
 import java.util.Map;

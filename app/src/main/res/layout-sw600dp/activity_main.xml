@@ -5,18 +5,18 @@
               android:baselineAligned="false"
               android:divider="?android:attr/dividerHorizontal"
               android:orientation="horizontal"
-              tools:context=".MainActivity">
+              tools:context=".ui.MainActivity">
     <!--
     This layout is a two-pane layout for the Items master/detail flow.
     -->
 
     <fragment android:id="@+id/movie_list_fragment"
-              android:name="com.example.ahmed.popularmovies.PopMovieGridFragment"
+              android:name="com.example.ahmed.popularmovies.ui.PopMovieGridFragment"
               xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="0dp"
               android:layout_height="match_parent"
-              tools:context=".MainActivity"
+              tools:context=".ui.MainActivity"
               tools:layout="@android:layout/list_content"
               android:layout_weight="2"/>
 <!--Dynamically Load Fragment using a container to automatically handle resetting values on device rotation-->
