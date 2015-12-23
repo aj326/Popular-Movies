@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by ahmed on 12/9/15.
@@ -35,7 +36,7 @@ public class MovieProvider extends ContentProvider {
 
     private static final SQLiteQueryBuilder sJoinedMoviesReviewsQueryBuilder;
     private static final SQLiteQueryBuilder sJoinedMoviesTrailersQueryBuilder;
-
+//// TODO: 12/22/15 Project needed columns only! 
     static {
         sJoinedMoviesReviewsQueryBuilder = new SQLiteQueryBuilder();
         sJoinedMoviesReviewsQueryBuilder.setTables(
@@ -174,8 +175,7 @@ public class MovieProvider extends ContentProvider {
             }
             case MOVIE_WITH_TRAILER: {
                 retCursor = sJoinedMoviesTrailersQueryBuilder.query(
-                        mOpenHelper.getReadableDatabase(), projection, mSelection, new String[]{
-                                uri.getLastPathSegment()}, null, null, sortOrder);
+                        mOpenHelper.getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder);
                 break;
             }
             case MOVIE_WITH_REVIEW: {
@@ -320,28 +320,26 @@ public class MovieProvider extends ContentProvider {
         int rowsUpdated;
 
         switch (match) {
-            case MOVIE:
-            case MOVIE_WITH_ID: {
-                rowsUpdated = db.updateWithOnConflict(MovieContract.MovieEntry.TABLE_NAME, values,
+            case MOVIE_WITH_ID:
+             {
+                 Log.d("provider",values.toString()+" "+ selection);
+                rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values,
                                                       selection,
-                                                      selectionArgs,
-                                                      SQLiteDatabase.CONFLICT_REPLACE);
+                                                      selectionArgs);
                 break;
             }
             case REVIEW:
             case MOVIE_WITH_REVIEW: {
-                rowsUpdated = db.updateWithOnConflict(MovieContract.ReviewEntry.TABLE_NAME, values,
-                                                      selection,
-                                                      selectionArgs,
-                                                      SQLiteDatabase.CONFLICT_REPLACE);
+                rowsUpdated = db.update(MovieContract.ReviewEntry.TABLE_NAME, values,
+                                        selection,
+                                        selectionArgs);
                 break;
             }
             case TRAILER:
             case MOVIE_WITH_TRAILER: {
-                rowsUpdated = db.updateWithOnConflict(MovieContract.TrailerEntry.TABLE_NAME, values,
-                                                      selection,
-                                                      selectionArgs,
-                                                      SQLiteDatabase.CONFLICT_REPLACE);
+                rowsUpdated = db.update(MovieContract.TrailerEntry.TABLE_NAME, values,
+                                        selection,
+                                        selectionArgs);
                 break;
             }
             default:

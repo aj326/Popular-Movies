@@ -96,6 +96,7 @@ public class MovieContract {
         public static final String COLUMN_MOVIE_ID = "movie_id";
 
         public static final String COLUMN_URL = "url";
+        public static final String COLUMN_TRAILER_NAME = "name";
 
 //        public static Uri buildTrailerUri(long id) {
 //            return ContentUris.withAppendedId(CONTENT_URI, id);

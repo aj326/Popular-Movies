@@ -23,8 +23,8 @@ public class MovieDBHelper extends SQLiteOpenHelper {
         // Create a table to hold locations.  A location consists of the string supplied in the
         // location setting, the city name, and the latitude and longitude
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + MovieContract.ReviewEntry.TABLE_NAME + " (" +
-                                               MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                                               MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " INTEGER," +
+                                               MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                               MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " INTEGER, " +
                                                MovieContract.ReviewEntry.COLUMN_AUTHOR + " TEXT UNIQUE, " +
                                                  MovieContract.ReviewEntry.COLUMN_CONTENT + " TEXT UNIQUE, " +
                                                " FOREIGN KEY (" + MovieContract.ReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
@@ -32,9 +32,10 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
 
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + MovieContract.TrailerEntry.TABLE_NAME + " (" +
-                                                MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                                                MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " INTEGER," +
-                                               MovieContract.TrailerEntry.COLUMN_URL + " TEXT UNIQUE, " +
+                                                MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " INTEGER, " +
+                                                MovieContract.TrailerEntry.COLUMN_TRAILER_NAME + " TEXT UNIQUE, " +
+                                                MovieContract.TrailerEntry.COLUMN_URL + " TEXT UNIQUE, " +
                                                 " FOREIGN KEY (" + MovieContract.TrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
                                                 MovieContract.MovieEntry.TABLE_NAME + " (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "));";
 
