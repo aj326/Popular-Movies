@@ -32,4 +32,16 @@ public interface Constants {
         SORT_BY_RATING,
         IS_FAVORITE
     }
+
+    enum TRAILER_COLUMNS {
+        _ID,
+        NAME,
+        URL
+    }
+
+    enum REVIEW_COLUMNS {
+        _ID,
+        AUTHOR,
+        CONTENT
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.ahmed.popularmovies.ui;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,12 +21,13 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.example.ahmed.popularmovies.R;
-import com.example.ahmed.popularmovies.adapters.CursorReviewAdapter;
+import com.example.ahmed.popularmovies.adapters.CursorTrailerAdapter;
 import com.example.ahmed.popularmovies.pojo.MovieReviews;
 import com.example.ahmed.popularmovies.pojo.MovieVideos;
 import com.example.ahmed.popularmovies.pojo.Review;
@@ -39,7 +42,6 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -57,16 +59,18 @@ public class DetailFragment extends Fragment
 
 
     private Uri mUri, reviewUri, trailerUri;
+    private boolean hasLoaded;
+    private ViewGroup mTrailerViews;
+    private  ViewGroup mHeader;
     private long mId;
     private CheckBox isFav;
     String LOG_TAG = DetailFragment.class.getSimpleName();
 
     //    private CursorDetailAdapter mCursorDetailAdapter;
-    private CursorReviewAdapter mCursorReviewAdapter;
     private ListView mReviewList;
-    private SimpleCursorAdapter mSimpleCursorAdapter;
-    private HashMap<String, String> mReviewHash;
-
+    private LinearLayout mTrailerList;
+    private SimpleCursorAdapter mReviewAdapter;
+    private CursorTrailerAdapter mTrailerAdapter;
 
     public DetailFragment() {
         setHasOptionsMenu(true);
@@ -115,11 +119,15 @@ public class DetailFragment extends Fragment
                     List<Video> videos = movieVideos.getVideos();
                     int numberOfVideos = videos.size();
                     Vector<ContentValues> cVVector = new Vector<ContentValues>(numberOfVideos);
+
                     if (numberOfVideos > 0) {
-                        ContentValues value = new ContentValues();
                         for (Video video : videos) {
                             if (video.getType().equals("Trailer") && video.getSite().equals(
                                     "YouTube")) {
+                                ContentValues value = new ContentValues();
+                                Log.d(LOG_TAG, "Adding" + video.getName());
+                                value.put(MovieContract.TrailerEntry.COLUMN_TRAILER_NAME,
+                                          video.getName());
                                 value.put(MovieContract.TrailerEntry.COLUMN_URL, video.getKey());
                                 value.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, mId);
                                 cVVector.add(value);
@@ -129,7 +137,7 @@ public class DetailFragment extends Fragment
                             ContentValues[] cvArray = new ContentValues[cVVector.size()];
                             cVVector.toArray(cvArray);
                             getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
-                            Log.d(LOG_TAG, "inserted trailer values");
+                            Log.d(LOG_TAG, "inserted trailer values: " + cvArray.toString());
                         } else {
                             Log.v(LOG_TAG, "no trailers found");
                         }
@@ -238,6 +246,7 @@ public class DetailFragment extends Fragment
                 uri = trailerUri;
                 projection = new String[]{
                         MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
+                        MovieContract.TrailerEntry.COLUMN_TRAILER_NAME,
                         MovieContract.TrailerEntry.COLUMN_URL
                 };
                 break;
@@ -298,17 +307,65 @@ public class DetailFragment extends Fragment
 
 
 //        values.put(MovieColumns.IS_FAVORITE, isFav.isChecked() ? 1 : 0);
-                Log.d(LOG_TAG, "onLoadFinished, isFav is " + isFav.isChecked());
-
+                isFav = (CheckBox) getView().findViewById(R.id.star);
+                isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        ContentValues values = new ContentValues();
+                        values.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, isChecked);
+                        getActivity().getContentResolver().update(mUri, values,
+                                                                  MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "=? ",
+                                                                  new String[]{Long.toString(mId)});
+                    }
+                });
                 isFav.setChecked(
                         (data.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
-
-
                 return;
 
             case Constants.REVIEW_LOADER:
                 Log.v(LOG_TAG, "Review Loader");
-                mSimpleCursorAdapter.changeCursor(data);
+                mReviewAdapter.changeCursor(data);
+                return;
+
+            case Constants.TRAILER_LOADER:
+                Log.v(LOG_TAG, "Trailer Loader");
+                if(!hasLoaded)
+                do {
+                    View icon = View.inflate(getContext(), R.layout.trailer_icon,
+                                             null).findViewById(R.id.list_item_trailer_icon);
+                    TextView count = (TextView) View.inflate(getContext(), R.layout.trailer_name,
+                                                             null).findViewById(
+                            R.id.list_item_trailer_name);
+                    count.setGravity(Gravity.CENTER_VERTICAL);
+                    LinearLayout layout =(LinearLayout)View.inflate(getContext(),
+                                                                    R.layout.layout_trailers,
+                                                                    null);
+
+                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    layoutParams.setMargins(35, 0, 25, 0);
+                    layoutParams.gravity = Gravity.CENTER_VERTICAL;
+
+                    String index = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal());
+                    String url = data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
+                    count.setText(index);
+                    icon.setTag(url);
+
+                    icon.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(
+                                    "http://www.youtube.com/watch?v=" + v.getTag())));
+                        }
+                    });
+                    Log.d(LOG_TAG, "populating listview");
+                    layout.addView(icon,layoutParams);
+                    layout.addView(count,layoutParams);
+                    mHeader.addView(layout);
+                } while (data.moveToNext());
+//                mTrailerAdapter.changeCursor(data);
+                hasLoaded=true;
                 return;
         }
     }
@@ -324,7 +381,8 @@ public class DetailFragment extends Fragment
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-//        mCursorReviewAdapter.swapCursor(null);
+        mReviewAdapter.swapCursor(null);
+
     }
 
     @Override
@@ -334,12 +392,16 @@ public class DetailFragment extends Fragment
 //        LinearLayout rootview= (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
 //                                                                   container,
 //                                                               false);
-        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.fragment_detail_header,
-                                                        mReviewList,
-                                                        false);
+        mHeader = (ViewGroup) inflater.inflate(R.layout.fragment_detail_header,
+                                               mReviewList,
+                                               false);
 //        View rootview = View.inflate(getContext(), R.layout.fragment_detail_header, mReviewList);
         mReviewList = (ListView) inflater.inflate(R.layout.listview_review, null, false);
-        mReviewList.addHeaderView(header);
+
+        mReviewList.addHeaderView(mHeader);
+//        mTrailerList.addFooterView(mReviewList);
+//        mReviewList.addHeaderView(header);
+//        mReviewList.addFooterView(mTrailerList);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(Constants.DETAIL_URI);
@@ -349,21 +411,9 @@ public class DetailFragment extends Fragment
             Log.d("reviewUri", reviewUri.toString());
             Log.d("trailerUri", trailerUri.toString());
         }
-        isFav = (CheckBox) header.findViewById(R.id.star);
-        isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                ContentValues values = new ContentValues();
-//                Log.d("Det:onChecked", "before update");
-                values.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, isChecked);
-                getActivity().getContentResolver().update(mUri, values, null,
-                                                          null);
-//                Log.d("Det:onChecked", "after update");
-            }
-        });
-//        mCursorDetailAdapter = new CursorDetailAdapter(getContext(),null);
 
-//        mCursorDetailAdapter.bindView(isFav, getContext(), null);
+//        mTrailerAdapter = new ArrayAdapter<String>(getContext(),R.layout.list_item_trailer,)
+
 
         String[] columns = new String[]{
                 MovieContract.ReviewEntry.COLUMN_AUTHOR,
@@ -373,11 +423,12 @@ public class DetailFragment extends Fragment
                 R.id.list_item_review_author,
                 R.id.list_item_review_content
         };
-        mReviewList.setDividerHeight(0);
-//mReviewList = new
-        mSimpleCursorAdapter = new SimpleCursorAdapter(getContext(), R.layout.list_item_review,
-                                                       null, columns, to, 0);
-        mReviewList.setAdapter(mSimpleCursorAdapter);
+        mReviewAdapter = new SimpleCursorAdapter(getContext(), R.layout.list_item_review,
+                                                 null, columns, to, 0);
+        mTrailerAdapter = new CursorTrailerAdapter(getContext(), null, 0);
+
+        mReviewList.setAdapter(mReviewAdapter);
+//        mTrailerList.setAdapter(mTrailerAdapter);
 //        LinearLayout myContainer = (LinearLayout) rootview.findViewById(R.id.reviews_container);
 //                myContainer.addView(mReviewList);
 
@@ -395,6 +446,7 @@ public class DetailFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
 
     }
+
 
     //        TODO implement share
     @Override
