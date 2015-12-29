@@ -9,6 +9,7 @@ import retrofit.Retrofit;
 public interface Constants {
     String API_KEY = "0d2f78cd5f086e8d35e0274952749495";
     String BASE_URL = "http://api.themoviedb.org";
+    String ARG_SORTING = "sorting";
 
 
     Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(

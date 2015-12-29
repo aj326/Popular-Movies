@@ -58,7 +58,6 @@ public class PopMovieGridFragment extends Fragment
 //    ProgressDialog  mProgressDialog;
     private  CursorMovieAdapter mMoviesAdapter;
 //    private boolean isFav = getSupportFragmentManager().findFragmentByTag()
-    private static final String ARG_SORTING = "ARG_SORTING";
 
 
 
@@ -66,6 +65,7 @@ public class PopMovieGridFragment extends Fragment
     private String mSorting;
     private  String mSelection="";
     private  String[] mSelectionArg;
+    private Bundle mBundle;
 //    private static String getArgSorting(int sorting){
 //        String[] sortings = {"",MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC",MovieContract.MovieEntry.COLUMN_SORT_BY_RATING+" DESC",""};
 //        return sortings[sorting];
@@ -91,21 +91,15 @@ public class PopMovieGridFragment extends Fragment
 
 
 //    }
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        Log.d(LOG_TAG, "onCreate called");
-//        Bundle bundle = savedInstanceState!=null?savedInstanceState:getArguments();
-        if (getArguments()!=null){
-//            mSelection = bundle.getString(ARG_SELECTION);
-            mSorting = getArguments().getString("sorting");
-            Log.d(LOG_TAG, "onCreate Args: " + mSorting + mSelection);
 
-        }
-        super.onCreate(savedInstanceState);
-
-//            Log.d(LOG_TAG,mSorting);
-
+    public static PopMovieGridFragment newInstance(String sorting) {
+        PopMovieGridFragment f = new PopMovieGridFragment();
+        Bundle args = new Bundle();
+        args.putString(Constants.ARG_SORTING, sorting);
+        f.setArguments(args);
+        return f;
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -134,7 +128,8 @@ public class PopMovieGridFragment extends Fragment
 //            Log.d(LOG_TAG, "savedInstance is not null"+ savedInstanceState.getString(ARG_SELECTION)+ " "+ savedInstanceState.getString(ARG_SORTING));
 //            getLoaderManager().restartLoader(Constants.CURSOR_LOADER_ID, savedInstanceState, this);
 //        }
-        getLoaderManager().initLoader(Constants.CURSOR_LOADER_ID, null,
+        if(mBundle!=null)
+        getLoaderManager().initLoader(Constants.CURSOR_LOADER_ID, mBundle,
                                       this);
 
     }
@@ -171,10 +166,11 @@ public class PopMovieGridFragment extends Fragment
 //        else Log.d(LOG_TAG,"All is null!");
 //        if(args!=null){
 //        mSelection = args.getString(ARG_SELECTION);
-//        mSorting = args.getString(ARG_SORTING);}
+        if(args!=null)
+        mSorting = args.getString(Constants.ARG_SORTING);
         Log.d(LOG_TAG,"onCreateLoader(): "+ mSorting + mSelection);
         if (mSorting!=null && mSorting.equals( "favorite")){
-            Log.d(LOG_TAG,"onCreateLoader(): favorites ");
+            Log.d(LOG_TAG, "onCreateLoader(): favorites ");
 //            mRecyclerView.swapAdapter(null,true);
 //mMoviesAdapter.notifyItemRangeRemoved(0,mMoviesAdapter.getItemCount());
             return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI,
@@ -291,7 +287,25 @@ public class PopMovieGridFragment extends Fragment
 
 
     }
-   @Override
+
+    @Override
+    public void onViewCreated(
+            View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        Log.d(LOG_TAG, "onViewCreated called");
+//        Bundle bundle = savedInstanceState!=null?savedInstanceState:getArguments();
+        if (getArguments()!=null){
+//            mSelection = bundle.getString(ARG_SELECTION);
+            mSorting = getArguments().getString(Constants.ARG_SORTING);
+            mBundle = getArguments();
+            Log.d(LOG_TAG, "onViewCreated Args: " + mSorting);
+            for (String key : getArguments().keySet())
+            {
+                Log.d("Bundle Debug", key + " = \"" + getArguments().get(key) + "\"");
+            }        }
+    }
+
+    @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
