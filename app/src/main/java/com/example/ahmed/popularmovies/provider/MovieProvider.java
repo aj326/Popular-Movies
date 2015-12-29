@@ -36,7 +36,8 @@ public class MovieProvider extends ContentProvider {
 
     private static final SQLiteQueryBuilder sJoinedMoviesReviewsQueryBuilder;
     private static final SQLiteQueryBuilder sJoinedMoviesTrailersQueryBuilder;
-//// TODO: 12/22/15 Project needed columns only! 
+// TODO: 12/22/15 join tables when needed only
+// TODO: 12/23/15 seperate sorting metrics table from details table
     static {
         sJoinedMoviesReviewsQueryBuilder = new SQLiteQueryBuilder();
         sJoinedMoviesReviewsQueryBuilder.setTables(
@@ -140,7 +141,7 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.MovieEntry.TABLE_NAME,
                         projection,
                         selection,
-                        null,
+                        selectionArgs,
                         null,
                         null,
                         sortOrder);
@@ -151,7 +152,7 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.ReviewEntry.TABLE_NAME,
                         projection,
                         selection,
-                        null,
+                        selectionArgs,
                         null,
                         null,
                         sortOrder);
@@ -162,7 +163,7 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.TrailerEntry.TABLE_NAME,
                         projection,
                         selection,
-                        null,
+                        selectionArgs,
                         null,
                         null,
                         sortOrder);

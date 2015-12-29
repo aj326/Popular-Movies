@@ -42,6 +42,7 @@ public class DetailActivity extends ActionBarActivity {
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.movie_detail_container, fragment)
+//                    .addToBackStack(null)
                     .commit();
         }
     }
