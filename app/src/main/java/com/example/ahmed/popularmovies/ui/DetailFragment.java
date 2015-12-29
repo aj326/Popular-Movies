@@ -333,10 +333,10 @@ public class DetailFragment extends Fragment
                 do {
                     View icon = View.inflate(getContext(), R.layout.trailer_icon,
                                              null).findViewById(R.id.list_item_trailer_icon);
-                    TextView count = (TextView) View.inflate(getContext(), R.layout.trailer_name,
+                    TextView name = (TextView) View.inflate(getContext(), R.layout.trailer_name,
                                                              null).findViewById(
                             R.id.list_item_trailer_name);
-                    count.setGravity(Gravity.CENTER_VERTICAL);
+                    name.setGravity(Gravity.CENTER_VERTICAL);
                     LinearLayout layout =(LinearLayout)View.inflate(getContext(),
                                                                     R.layout.layout_trailers,
                                                                     null);
@@ -348,7 +348,7 @@ public class DetailFragment extends Fragment
 
                     String index = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal());
                     String url = data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
-                    count.setText(index);
+                    name.setText(index);
                     icon.setTag(url);
 
                     icon.setOnClickListener(new View.OnClickListener() {
@@ -361,7 +361,7 @@ public class DetailFragment extends Fragment
                     });
                     Log.d(LOG_TAG, "populating listview");
                     layout.addView(icon,layoutParams);
-                    layout.addView(count,layoutParams);
+                    layout.addView(name,layoutParams);
                     mHeader.addView(layout);
                 } while (data.moveToNext());
 //                mTrailerAdapter.changeCursor(data);
@@ -448,7 +448,7 @@ public class DetailFragment extends Fragment
     }
 
 
-    //        TODO implement share
+    //TODO implement share
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.

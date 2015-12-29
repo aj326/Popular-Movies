@@ -50,10 +50,11 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final Cursor cursor){
+    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor){
         Picasso.with(mContext).load(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER)))
                 .into(viewHolder.mImageview);
-        //Is there a cleaner way than to set a tag here<==================================
+// TODO: 12/23/15 use tag to store movie_id,
+// TODO: 12/23/15 use enum to locate column
         final long _id = cursor.getLong(
                 cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
         viewHolder.mImageview.setOnClickListener(new View.OnClickListener() {

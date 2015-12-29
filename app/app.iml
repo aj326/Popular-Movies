@@ -117,8 +117,8 @@
     <orderEntry type="library" exported="" name="jackson-core-2.2.0" level="project" />
     <orderEntry type="library" exported="" name="design-23.1.1" level="project" />
     <orderEntry type="library" exported="" name="jackson-databind-2.2.0" level="project" />
-    <orderEntry type="library" exported="" name="jsonschema2pojo-core-0.4.15" level="project" />
     <orderEntry type="library" exported="" name="joda-time-2.2" level="project" />
+    <orderEntry type="library" exported="" name="jsonschema2pojo-core-0.4.15" level="project" />
     <orderEntry type="library" exported="" name="commons-lang3-3.2.1" level="project" />
     <orderEntry type="library" exported="" name="schematic-0.6.3" level="project" />
     <orderEntry type="library" exported="" name="javaparser-1.0.11" level="project" />
