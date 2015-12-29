@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,19 +21,19 @@ import com.example.ahmed.popularmovies.provider.MovieContract;
 import com.example.ahmed.popularmovies.utils.Constants;
 import com.facebook.stetho.Stetho;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements CursorMovieAdapter.Callback {
     public boolean mTwoPane;
     private Toolbar toolbar;
     private TabLayout tabLayout;
+    private ViewPager viewPager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
-
-
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)
                         .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
@@ -37,37 +41,85 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                         .build());
 //        setupTabs();
         this.setContentView(R.layout.activity_main);
-//        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-//        viewPager.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager(),
-//                                                            MainActivity.this));
-//
-//        TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
-//        tabLayout.setupWithViewPager(viewPager);
-//        toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//
-//        viewPager = (ViewPager) findViewById(R.id.viewpager);
-//        setupViewPager(viewPager);
-//
-//        tabLayout = (TabLayout) findViewById(R.id.tabs);
-//        tabLayout.setupWithViewPager(viewPager);
-        //check if one or two panes
-        if(findViewById(R.id.movie_detail_container)!=null)
-        {
-    mTwoPane=true;
+
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
+
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
+        if (findViewById(R.id.movie_detail_container) != null) {
+            mTwoPane = true;
             //check if already loaded then destroyed by an event like screen rotation
-            if(savedInstanceState == null){
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.movie_detail_container, new DetailFragment())
-                    .commit();}
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.movie_detail_container, new DetailFragment())
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
         }
-        else
-            mTwoPane=false;
 
     }
-//    @Override
+
+
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+
+
+        adapter.addFragment(PopMovieGridFragment.newInstance(
+                MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC"), "Popular");
+
+
+        adapter.addFragment(PopMovieGridFragment.newInstance(MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"),"Rating");
+
+        adapter.addFragment(PopMovieGridFragment.newInstance("favorite"),"Favorite");
+
+//        adapter.addFragment(new PopMovieGridFragment(), "THREE");
+        viewPager.setAdapter(adapter);
+    }
+
+    class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
+    }
+
+
+
+        //check if one or two panes
+
+
+    //    @Override
 //    public void onBackPressed() {
 //        if(getFragmentManager().getBackStackEntryCount() == 0) {
 //            super.onBackPressed();
@@ -80,9 +132,9 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
         ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(true);
-        Bundle b =new Bundle();
+        Bundle b = new Bundle();
 
-        b.putString("sorting", MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC");
+        b.putString("sorting", MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC");
         ActionBar.Tab popularTab = actionBar
                 .newTab()
                 .setText("Popular")
@@ -107,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                         new SupportFragmentTabListener<PopMovieGridFragment>(
                                 R.id.movie_list_fragment, this,
                                 "rating",
-                                PopMovieGridFragment.class,b));
+                                PopMovieGridFragment.class, b));
 
         actionBar.addTab(ratingTab);
 
@@ -123,12 +175,11 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                         new SupportFragmentTabListener<PopMovieGridFragment>(
                                 R.id.movie_list_fragment, this,
                                 "favorite",
-                                PopMovieGridFragment.class,b));
+                                PopMovieGridFragment.class, b));
 
         actionBar.addTab(favTAb);
 //        actionBar.selectTab(ratingTab);
     }
-
 
 
     @Override
@@ -156,8 +207,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 
     @Override
     public void onItemSelected(Uri movieUri) {
-        if(mTwoPane)
-        {
+        if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
@@ -171,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.movie_detail_container, fragment, Constants.DETAILFRAGMENT_TAG)
                     .commit();
-            Log.v("MainActivity","Completed replacing detail cont");
+            Log.v("MainActivity", "Completed replacing detail cont");
         } else {
             Log.d("MainAct movieUri", movieUri.toString());
             Intent intent = new Intent(this, DetailActivity.class)
@@ -179,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             startActivity(intent);
         }
     }
-
 
 
 //    @Override
