@@ -8,12 +8,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.example.ahmed.popularmovies.R;
 import com.example.ahmed.popularmovies.adapters.CursorMovieAdapter;
@@ -45,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
@@ -128,85 +123,35 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 //            getFragmentManager().popBackStack();
 //        }
 //    }
-    private void setupTabs() {
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        actionBar.setDisplayShowTitleEnabled(true);
-        Bundle b = new Bundle();
-
-        b.putString("sorting", MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC");
-        ActionBar.Tab popularTab = actionBar
-                .newTab()
-                .setText("Popular")
-//                .setIcon(R.drawable.ic_home)
-                .setTabListener(
-                        new SupportFragmentTabListener<PopMovieGridFragment>(
-                                R.id.movie_list_fragment, this,
-                                "popular",
-                                PopMovieGridFragment.class, b));
 
 
-        actionBar.addTab(popularTab);
-        actionBar.selectTab(popularTab);
-        b = new Bundle();
-        b.putString("sorting", MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC");
-
-        ActionBar.Tab ratingTab = actionBar
-                .newTab()
-                .setText("Rating")
-//                .setIcon(R.drawable.ic_home)
-                .setTabListener(
-                        new SupportFragmentTabListener<PopMovieGridFragment>(
-                                R.id.movie_list_fragment, this,
-                                "rating",
-                                PopMovieGridFragment.class, b));
-
-        actionBar.addTab(ratingTab);
 
 
-        b = new Bundle();
-        b.putString("sorting", "favorite");
-
-        ActionBar.Tab favTAb = actionBar
-                .newTab()
-                .setText("Favorite")
-//                .setIcon(R.drawable.ic_home)
-                .setTabListener(
-                        new SupportFragmentTabListener<PopMovieGridFragment>(
-                                R.id.movie_list_fragment, this,
-                                "favorite",
-                                PopMovieGridFragment.class, b));
-
-        actionBar.addTab(favTAb);
-//        actionBar.selectTab(ratingTab);
-    }
-
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        this.getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if (id == R.id.action_settings) {
+//            this.startActivity(new Intent(this, SettingsActivity.class));
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        this.getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            this.startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onItemSelected(Uri movieUri) {
+    public void onItemSelected(Uri movieUri,String movieName) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -214,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             Bundle args = new Bundle();
             Log.d("MainAct movieUri", movieUri.toString());
             args.putParcelable(Constants.DETAIL_URI, movieUri);
+            args.putString(Constants.MOVIE_NAME, movieName);
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(args);
@@ -226,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             Log.d("MainAct movieUri", movieUri.toString());
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(movieUri);
+            intent.putExtra(Constants.MOVIE_NAME,movieName);
             startActivity(intent);
         }
     }

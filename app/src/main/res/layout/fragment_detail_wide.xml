@@ -18,15 +18,15 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_gravity="center"
-            android:background="#2196F3"
             android:gravity="center_horizontal"
             android:longClickable="false"
             android:paddingBottom="42dp"
             android:paddingTop="42dp"
             android:text="@string/movie_title_label"
-            android:textColor="#ffffff"
+            android:background="@color/colorPrimaryDark"
+            android:textColor="@color/textColorPrimary"
             android:textSize="30sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
 
         <LinearLayout
             android:id="@+id/movie_info_layout"

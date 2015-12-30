@@ -20,6 +20,8 @@ public interface Constants {
     int REVIEW_LOADER = 2;
     int TRAILER_LOADER = 3;
     String DETAILFRAGMENT_TAG = "DFTAG";
+    String HASHTAG_PROJECT = "#PopularMovies";
+    String MOVIE_NAME = "MOVIE_NAME";
 
     enum DETAIL_COLUMNS {
         _ID,
