@@ -1,6 +1,5 @@
 package com.example.ahmed.popularmovies.adapters;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -23,19 +22,16 @@ import com.squareup.picasso.Picasso;
  */
 
 
-
-public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAdapter.ViewHolder>
-{
-    public interface Callback{
-         void onItemSelected(Uri movieUri);
+public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAdapter.ViewHolder> {
+    public interface Callback {
+        void onItemSelected(Uri movieUri, String movieName);
     }
 
 
-
-    
     Context mContext;
     ViewHolder mVh;
-    public CursorMovieAdapter(Context context, Cursor cursor){
+
+    public CursorMovieAdapter(Context context, Cursor cursor) {
         super(context, cursor);
         mContext = context;
     }
@@ -50,35 +46,32 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor){
-        Picasso.with(mContext).load(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER)))
+    public void onBindViewHolder(ViewHolder viewHolder, final Cursor cursor) {
+        Picasso.with(mContext).load(cursor.getString(Constants.DETAIL_COLUMNS.POSTER.ordinal()))
                 .into(viewHolder.mImageview);
-// TODO: 12/23/15 use tag to store movie_id,
-// TODO: 12/23/15 use enum to locate column
-        final long _id = cursor.getLong(
-                cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
+        final long movieId = cursor.getLong(
+                Constants.DETAIL_COLUMNS.MOVIE_ID.ordinal());
+        final String name = cursor.getString(
+                Constants.DETAIL_COLUMNS.TITLE.ordinal());
         viewHolder.mImageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((Callback) mContext)
-                        .onItemSelected(MovieContract.MovieEntry.buildMovieUri(_id));
-
-
-
+                        .onItemSelected(MovieContract.MovieEntry.buildMovieUri(movieId), name);
             }
         });
-        final ContentResolver contentResolver = mContext.getContentResolver();
         viewHolder.isFav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ContentValues values = new ContentValues();
                 values.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE,
                            ((CheckBox) view).isChecked());
-                Log.d("uri",MovieContract.MovieEntry.buildMovieUri(_id).toString());
-                contentResolver.update(MovieContract.MovieEntry.buildMovieUri(_id), values,
-                                       "movie_id=?",
-                                       new String[]{
-                                               _id+""});
+                Log.d("uri", MovieContract.MovieEntry.buildMovieUri(movieId).toString());
+                mContext.getContentResolver().update(
+                        MovieContract.MovieEntry.buildMovieUri(movieId), values,
+                        "movie_id=?",
+                        new String[]{
+                                movieId + ""});
             }
         });
         viewHolder.isFav.setChecked(
@@ -88,6 +81,7 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView mImageview;
         public CheckBox isFav;
+
         public ViewHolder(View view) {
             super(view);
             mImageview = (ImageView) view.findViewById(R.id.poster);
@@ -96,5 +90,5 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
         }
 
     }
-    }
+}
 

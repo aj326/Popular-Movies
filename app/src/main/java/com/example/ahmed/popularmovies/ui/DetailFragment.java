@@ -1,5 +1,4 @@
 package com.example.ahmed.popularmovies.ui;
-
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,11 +10,16 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -61,24 +65,45 @@ public class DetailFragment extends Fragment
     private Uri mUri, reviewUri, trailerUri;
     private boolean hasLoaded;
     private ViewGroup mTrailerViews;
-    private  ViewGroup mHeader;
+    private String mShareTrailer;
+    private String mMovieName;
+    private ViewGroup mHeader;
     private long mId;
     private CheckBox isFav;
     String LOG_TAG = DetailFragment.class.getSimpleName();
 
     //    private CursorDetailAdapter mCursorDetailAdapter;
     private ListView mReviewList;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(Constants.DETAIL_URI);
+            mMovieName = arguments.getString(Constants.MOVIE_NAME);
+            mId = Long.parseLong(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
+            reviewUri = MovieContract.MovieEntry.buildMovieIdWithReview(mId);
+            trailerUri = MovieContract.MovieEntry.buildMovieIdWithTrailer(mId);
+            Log.d("reviewUri", reviewUri.toString());
+            Log.d("trailerUri", trailerUri.toString());
+            Log.d("mMovieName", mMovieName);
+
+        }
+        super.onCreate(savedInstanceState);
+    }
+
     private LinearLayout mTrailerList;
     private SimpleCursorAdapter mReviewAdapter;
     private CursorTrailerAdapter mTrailerAdapter;
 
     public DetailFragment() {
-        setHasOptionsMenu(true);
+//        setHasOptionsMenu(true);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
 //        mReviewHash = new HashMap<String, String>();
+        super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(Constants.DETAIL_LOADER, null, this);
         getLoaderManager().initLoader(Constants.TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(Constants.REVIEW_LOADER, null, this);
@@ -86,8 +111,9 @@ public class DetailFragment extends Fragment
         insertTrailers();
         insertReviews();
 
+//        setHasOptionsMenu(true);
 
-        super.onActivityCreated(savedInstanceState);
+
     }
 
     private void insertTrailers() {
@@ -290,11 +316,10 @@ public class DetailFragment extends Fragment
                         R.dimen.img_width, R.dimen.img_height)
                         .into(poster);
 
-                TextView title = (TextView) getView().findViewById(R.id.movie_title);
-                title.setText(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
-
-                getActivity().setTitle(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
-
+//                TextView title = (TextView) getView().findViewById(R.id.movie_title);
+//                title.setText(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(
+                        data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()) );
                 TextView release_date = (TextView) getView().findViewById(R.id.movie_year);
                 release_date.setText(
                         data.getString(Constants.DETAIL_COLUMNS.RELEASE_DATE.ordinal()));
@@ -329,44 +354,56 @@ public class DetailFragment extends Fragment
 
             case Constants.TRAILER_LOADER:
                 Log.v(LOG_TAG, "Trailer Loader");
-                if(!hasLoaded)
-                do {
-                    View icon = View.inflate(getContext(), R.layout.trailer_icon,
-                                             null).findViewById(R.id.list_item_trailer_icon);
-                    TextView name = (TextView) View.inflate(getContext(), R.layout.trailer_name,
-                                                             null).findViewById(
-                            R.id.list_item_trailer_name);
-                    name.setGravity(Gravity.CENTER_VERTICAL);
-                    LinearLayout layout =(LinearLayout)View.inflate(getContext(),
-                                                                    R.layout.layout_trailers,
-                                                                    null);
+                if (mShareTrailer == null) {
+                    mShareTrailer = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal())+": http://www.youtube.com/watch?v="
+                                    +
+                                    data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
+                    setHasOptionsMenu(true);
+                }
+                if (!hasLoaded) {
+                    do {
+                        View icon = View.inflate(getContext(), R.layout.trailer_icon,
+                                                 null).findViewById(R.id.list_item_trailer_icon);
+                        TextView name = (TextView) View.inflate(getContext(), R.layout.trailer_name,
+                                                                null).findViewById(
+                                R.id.list_item_trailer_name);
+                        name.setGravity(Gravity.CENTER_VERTICAL);
+                        LinearLayout layout = (LinearLayout) View.inflate(getContext(),
+                                                                          R.layout.layout_trailers,
+                                                                          null);
 
-                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    layoutParams.setMargins(35, 0, 25, 0);
-                    layoutParams.gravity = Gravity.CENTER_VERTICAL;
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT);
+                        layoutParams.setMargins(35, 0, 25, 0);
+                        layoutParams.gravity = Gravity.CENTER_VERTICAL;
 
-                    String index = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal());
-                    String url = data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
-                    name.setText(index);
-                    icon.setTag(url);
+                        String index = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal());
+                        String url = data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
 
-                    icon.setOnClickListener(new View.OnClickListener() {
+                        name.setText(index);
+                        icon.setTag(url);
 
-                        @Override
-                        public void onClick(View v) {
-                            getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(
-                                    "http://www.youtube.com/watch?v=" + v.getTag())));
-                        }
-                    });
-                    Log.d(LOG_TAG, "populating listview");
-                    layout.addView(icon,layoutParams);
-                    layout.addView(name,layoutParams);
-                    mHeader.addView(layout);
-                } while (data.moveToNext());
-//                mTrailerAdapter.changeCursor(data);
-                hasLoaded=true;
-                return;
+                        icon.setOnClickListener(new View.OnClickListener() {
+
+                            @Override
+                            public void onClick(View v) {
+                                getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(
+                                        "http://www.youtube.com/watch?v=" + v.getTag())));
+                            }
+                        });
+                        Log.d(LOG_TAG, "populating listview");
+                        layout.addView(icon, layoutParams);
+                        layout.addView(name, layoutParams);
+                        mHeader.addView(layout);
+                    } while (data.moveToNext());
+                    hasLoaded = true;
+                    TextView ReviewLabel = new TextView(getContext());
+                    ReviewLabel.setText(R.string.reviews_label);
+                    ReviewLabel.setTextAppearance(getContext(),
+                                                  android.R.style.TextAppearance_Large);
+                    mHeader.addView(ReviewLabel);
+                }
         }
     }
 
@@ -385,6 +422,7 @@ public class DetailFragment extends Fragment
 
     }
 
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -392,25 +430,62 @@ public class DetailFragment extends Fragment
 //        LinearLayout rootview= (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
 //                                                                   container,
 //                                                               false);
-        mHeader = (ViewGroup) inflater.inflate(R.layout.fragment_detail_header,
-                                               mReviewList,
-                                               false);
+
+        mHeader = (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
+                                                       mReviewList,
+                                                       false);
+        Toolbar toolbar = (Toolbar) mHeader.findViewById(R.id.detail_toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(
+                true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
+//        toolbar.inflateMenu(R.menu.detailfragment);
+//        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+//            @Override
+//            public boolean onMenuItemClick(MenuItem item) {
+//                Log.d(LOG_TAG,"invoked share click");
+//
+//                switch (item.getItemId()){
+//                    case R.id.menu_item_share:
+//                        ShareActionProvider mShareActionProvider =
+//                                (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+//                        if(mShareActionProvider!=null) {Log.d(LOG_TAG,"provider not null");}
+//                        Toast.makeText(getContext(), "Share", Toast.LENGTH_SHORT).show();
+//                        return true;
+//                }
+//
+//                return false;
+//            }
+////                ShareActionProvider mShareActionProvider =
+////                        (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+////
+////                // Attach an intent to this ShareActionProvider.  You can update this at any time,
+////                // like when the user selects a new piece of data they might like to share.
+////                if (mShareActionProvider != null) {
+////                    Log.d(LOG_TAG,"share action provider is not null");
+////
+////                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+////                    shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+////
+////                    shareIntent.setType("text/plain");
+////                    shareIntent.putExtra(Intent.EXTRA_TEXT, mShareTrailer + "#PopularMovies");
+////                    mShareActionProvider.setShareIntent(shareIntent);
+////                    return true;
+////                }
+////                return true;
+////            }
+//        });
+
 //        View rootview = View.inflate(getContext(), R.layout.fragment_detail_header, mReviewList);
         mReviewList = (ListView) inflater.inflate(R.layout.listview_review, null, false);
 
         mReviewList.addHeaderView(mHeader);
+        mHeader = (LinearLayout) mHeader.findViewById(R.id.fragment_detail_header_layout_container);
 //        mTrailerList.addFooterView(mReviewList);
 //        mReviewList.addHeaderView(header);
 //        mReviewList.addFooterView(mTrailerList);
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            mUri = arguments.getParcelable(Constants.DETAIL_URI);
-            mId = Long.parseLong(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
-            reviewUri = MovieContract.MovieEntry.buildMovieIdWithReview(mId);
-            trailerUri = MovieContract.MovieEntry.buildMovieIdWithTrailer(mId);
-            Log.d("reviewUri", reviewUri.toString());
-            Log.d("trailerUri", trailerUri.toString());
-        }
+
 
 //        mTrailerAdapter = new ArrayAdapter<String>(getContext(),R.layout.list_item_trailer,)
 
@@ -440,33 +515,35 @@ public class DetailFragment extends Fragment
         return mReviewList;
     }
 
-    @Override
-    public void onViewCreated(
-            View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-    }
-
 
     //TODO implement share
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
-//            inflater.inflate(R.menu.detailfragment, menu);
-//
-//            // Retrieve the share menu item
-//            MenuItem menuItem = menu.findItem(R.id.menu_item_share);
-//
-//            // Get the provider and hold onto it to set/change the share intent.
-//            ShareActionProvider mShareActionProvider =
-//                    (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
-//
-//            // Attach an intent to this ShareActionProvider.  You can update this at any time,
-//            // like when the user selects a new piece of data they might like to share.
-//            if (mShareActionProvider != null ) {
-//                mShareActionProvider.setShareIntent(createShareForecastIntent());
-//            } else {
-//            }
+        Log.d(LOG_TAG,"onCreateOptionsMenu" + mMovieName);
+
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.detailfragment, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.menu_item_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        ShareActionProvider mShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        // Attach an intent to this ShareActionProvider.  You can update this at any time,
+        // like when the user selects a new piece of data they might like to share.
+        if (mShareActionProvider != null) {
+            Log.d(LOG_TAG, "onCreateOptionsMenu Share Action Provider");
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mMovieName + "—" + mShareTrailer + " " + Constants.HASHTAG_PROJECT);
+            mShareActionProvider.setShareIntent(shareIntent);
+        }
     }
 
 }
