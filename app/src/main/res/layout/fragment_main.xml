@@ -6,6 +6,7 @@
     android:id="@+id/swipe_container"
     tools:context=".ui.PopMovieGridFragment"
     >
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview_movies"
         android:layout_width="match_parent"

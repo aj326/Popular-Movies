@@ -10,13 +10,16 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,6 +57,7 @@ public class PopMovieGridFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
 
+
     private  RecyclerView mRecyclerView;
 //     ProgressDialog progressDialog = new ProgressDialog();
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
@@ -69,6 +73,10 @@ public class PopMovieGridFragment extends Fragment
     private  String[] mSelectionArg;
     private Bundle mBundle;
     private SwipeRefreshLayout swipeContainer;
+
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
 
 
@@ -322,6 +330,7 @@ public class PopMovieGridFragment extends Fragment
         swipeContainer = (SwipeRefreshLayout) rootView.findViewById(
                 R.id.swipe_container);
 
+
         mRecyclerView.setLayoutManager(
                 new GridLayoutManager(mRecyclerView.getContext(), 2)
         );
@@ -333,5 +342,6 @@ public class PopMovieGridFragment extends Fragment
         mRecyclerView.setAdapter(this.mMoviesAdapter);
         return rootView;
     }
+
 
 }

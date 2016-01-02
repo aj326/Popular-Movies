@@ -6,6 +6,7 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -104,16 +105,17 @@ public class DetailFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
 //        mReviewHash = new HashMap<String, String>();
         super.onActivityCreated(savedInstanceState);
+        insertTrailers();
+
+
+        insertReviews();
         getLoaderManager().initLoader(Constants.DETAIL_LOADER, null, this);
         getLoaderManager().initLoader(Constants.TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(Constants.REVIEW_LOADER, null, this);
 
 
 
-            insertTrailers();
 
-
-                insertReviews();
 
 
 
@@ -434,7 +436,7 @@ public class DetailFragment extends Fragment
 //                                                                   container,
 //                                                               false);
 
-        mHeader = (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
+        mHeader = (CoordinatorLayout) inflater.inflate(R.layout.fragment_detail_header,
                                                        mReviewList,
                                                        false);
         Toolbar toolbar = (Toolbar) mHeader.findViewById(R.id.detail_toolbar);
