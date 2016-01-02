@@ -90,5 +90,6 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
         }
 
     }
+
 }
 

@@ -51,11 +51,21 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 
         if (findViewById(R.id.movie_detail_container) != null) {
             mTwoPane = true;
+            Log.d("main", "two panes");
             //check if already loaded then destroyed by an event like screen rotation
             if (savedInstanceState == null) {
+//                int index = viewPager.getCurrentItem();
+//                ViewPagerAdapter adapter = (ViewPagerAdapter) viewPager.getAdapter();
+//                Fragment fragment= adapter.getItem(index);
+//                fragment.getChildFragmentManager().
+//                        beginTransaction()
+//                        .replace(R.id.movie_list_fragment, recreateFragment(fragment))
+//                        .commit();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.movie_detail_container, new DetailFragment())
                         .commit();
+
+
             }
         } else {
             mTwoPane = false;
@@ -64,19 +74,22 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
     }
 
 
+
+
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        ViewPagerAdapter adapter = new ViewPagerAdapter(
+                getSupportFragmentManager());
 
 
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC"), "Popular");
 
 
-        adapter.addFragment(PopMovieGridFragment.newInstance(MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"),"Rating");
+        adapter.addFragment(PopMovieGridFragment.newInstance(
+                MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"), "Rating");
 
-        adapter.addFragment(PopMovieGridFragment.newInstance("favorite"),"Favorite");
+        adapter.addFragment(PopMovieGridFragment.newInstance("favorite"), "Favorite");
 
-//        adapter.addFragment(new PopMovieGridFragment(), "THREE");
         viewPager.setAdapter(adapter);
     }
 
@@ -103,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             mFragmentTitleList.add(title);
         }
 
+
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
@@ -110,48 +124,8 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
     }
 
 
-
-        //check if one or two panes
-
-
-    //    @Override
-//    public void onBackPressed() {
-//        if(getFragmentManager().getBackStackEntryCount() == 0) {
-//            super.onBackPressed();
-//        }
-//        else {
-//            getFragmentManager().popBackStack();
-//        }
-//    }
-
-
-
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        this.getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            this.startActivity(new Intent(this, SettingsActivity.class));
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
     @Override
-    public void onItemSelected(Uri movieUri,String movieName) {
+    public void onItemSelected(Uri movieUri, String movieName) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -172,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             Log.d("MainAct movieUri", movieUri.toString());
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(movieUri);
-            intent.putExtra(Constants.MOVIE_NAME,movieName);
+            intent.putExtra(Constants.MOVIE_NAME, movieName);
             startActivity(intent);
         }
     }

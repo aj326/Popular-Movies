@@ -114,5 +114,6 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
             mDataIsValid = false;
             notifyDataSetChanged();
         }
+
     }
 }

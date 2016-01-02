@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -52,6 +53,7 @@ import retrofit.Retrofit;
 public class PopMovieGridFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
+
     private  RecyclerView mRecyclerView;
 //     ProgressDialog progressDialog = new ProgressDialog();
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
@@ -66,31 +68,11 @@ public class PopMovieGridFragment extends Fragment
     private  String mSelection="";
     private  String[] mSelectionArg;
     private Bundle mBundle;
-//    private static String getArgSorting(int sorting){
-//        String[] sortings = {"",MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC",MovieContract.MovieEntry.COLUMN_SORT_BY_RATING+" DESC",""};
-//        return sortings[sorting];
-//    }
-
-//    public static PopMovieGridFragment newInstance(int sorting) {
-//        Bundle args = new Bundle();
-//        args.putString(ARG_SORTING, getArgSorting(sorting));
-//        args.putString(ARG_SELECTION,"");
-//        if(sorting==3){
-//            args.putString(ARG_SELECTION,MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_IS_FAVORITE + "=1");
-//        }
-//        PopMovieGridFragment fragment = new PopMovieGridFragment();
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
-//    @Override
-//    public void onSaveInstanceState(Bundle outState) {
-//        outState.putString(ARG_SORTING, mSorting);
-//        outState.putString(ARG_SELECTION, mSelection);
-//        super.onSaveInstanceState(outState);
-////        outState.putString(ARG_SELECTION,MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_IS_FAVORITE + "=1");
+    private SwipeRefreshLayout swipeContainer;
 
 
-//    }
+
+
 
     public static PopMovieGridFragment newInstance(String sorting) {
         PopMovieGridFragment f = new PopMovieGridFragment();
@@ -105,13 +87,37 @@ public class PopMovieGridFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG, "onActivityCreated called");
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+
+            @Override
+
+            public void onRefresh() {
+
+                insertData(false);
+
+
+            }
+
+        });
+
+        // Configure the refreshing colors
+
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+
+                                               android.R.color.holo_green_light,
+
+                                               android.R.color.holo_orange_light,
+
+                                               android.R.color.holo_red_light);
+
+
+
+
         Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                                                             null, null, null, null);
         Log.i(LOG_TAG, "cursor count: " + c.getCount());
-        if ( c.getCount() == 0) {
-            Log.d(LOG_TAG,"Entering data");
-            insertData();
-        }
+        if(c.getCount()==0)
+            insertData(true);
         c.close();
 //        if (savedInstanceState==null)
 //        {
@@ -200,7 +206,7 @@ public class PopMovieGridFragment extends Fragment
     }
 
 
-    private  void insertData() {
+    private  void insertData(final boolean isFirstTime) {
         Log.d(LOG_TAG, "insert");
 
 //        progressDialog.setIndeterminate(true);
@@ -218,7 +224,7 @@ public class PopMovieGridFragment extends Fragment
 
         for (int i = 1; i < MAX_PAGES; i++) {
             final ProgressDialog progressDialog =  ProgressDialog.show(getContext(),
-                                                                       "Fetching Data",
+                                                                       "Fetching Movies",
                                                                        "Please wait...", false,
                                                                        true);
             Call<MoviesFromTMDB> call = service.movieList(i);
@@ -273,7 +279,8 @@ public class PopMovieGridFragment extends Fragment
                         }
 
                     }
-
+                    if(!isFirstTime)
+                    swipeContainer.setRefreshing(false);
                 }
 
 
@@ -312,6 +319,9 @@ public class PopMovieGridFragment extends Fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
+        swipeContainer = (SwipeRefreshLayout) rootView.findViewById(
+                R.id.swipe_container);
+
         mRecyclerView.setLayoutManager(
                 new GridLayoutManager(mRecyclerView.getContext(), 2)
         );
