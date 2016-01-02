@@ -108,10 +108,13 @@ public class DetailFragment extends Fragment
         getLoaderManager().initLoader(Constants.TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(Constants.REVIEW_LOADER, null, this);
 
-        insertTrailers();
-        insertReviews();
 
-//        setHasOptionsMenu(true);
+
+            insertTrailers();
+
+
+                insertReviews();
+
 
 
     }
@@ -516,7 +519,6 @@ public class DetailFragment extends Fragment
     }
 
 
-    //TODO implement share
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.

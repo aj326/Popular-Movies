@@ -41,6 +41,13 @@
         <!--
         This layout is a two-pane layout for the Items master/detail flow.
         -->
+        <fragment
+            android:id="@+id/movie_list_fragment"
+            android:name="com.example.ahmed.popularmovies.ui.PopMovieGridFragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            tools:layout="@layout/fragment_main"/>
 
         <!--Dynamically Load Fragment using a container to automatically handle resetting values on device rotation-->
         <FrameLayout
