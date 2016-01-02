@@ -40,17 +40,14 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
         this.setContentView(R.layout.activity_main);
 
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        viewPager = (ViewPager) findViewById(R.id.viewpager);
-        setupViewPager(viewPager);
 
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
+
+
 
         if (findViewById(R.id.movie_detail_container) != null) {
             mTwoPane = true;
+
             Log.d("main", "two panes");
             //check if already loaded then destroyed by an event like screen rotation
             if (savedInstanceState == null) {
@@ -65,9 +62,19 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                         .add(R.id.movie_detail_container, new DetailFragment())
                         .commit();
 
+//                toolbar = findViewById(R.id.movie_list_toolbar)
+
 
             }
         } else {
+            toolbar = (Toolbar) findViewById(R.id.movie_list_toolbar);
+            setSupportActionBar(toolbar);
+
+            viewPager = (ViewPager) findViewById(R.id.viewpager);
+            setupViewPager(viewPager);
+
+            tabLayout = (TabLayout) findViewById(R.id.tabs);
+            tabLayout.setupWithViewPager(viewPager);
             mTwoPane = false;
         }
 
@@ -79,17 +86,30 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(
                 getSupportFragmentManager());
-
+        Fragment fragment = PopMovieGridFragment.newInstance(
+                MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC");
+//        getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.movie_list_container, fragment)
+//                .commit();
 
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC"), "Popular");
 
 
+
+//        getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.movie_list_container, fragment)
+//                .commit();
+
         adapter.addFragment(PopMovieGridFragment.newInstance(
-                MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"), "Rating");
+                MovieContract.MovieEntry.COLUMN_SORT_BY_RATING+ " DESC"), "Rating");
 
+        fragment = PopMovieGridFragment.newInstance("favorite");
+//        getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.movie_list_container, fragment)
+//                .commit();
         adapter.addFragment(PopMovieGridFragment.newInstance("favorite"), "Favorite");
-
+//        adapter.instantiateItem()
         viewPager.setAdapter(adapter);
     }
 
@@ -103,13 +123,17 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
 
         @Override
         public Fragment getItem(int position) {
+//             getSupportFragmentManager().beginTransaction()
+//            .add(R.id.movie_list_container, mFragmentList.get(position)).commit();
             return mFragmentList.get(position);
         }
+
 
         @Override
         public int getCount() {
             return mFragmentList.size();
         }
+
 
         public void addFragment(Fragment fragment, String title) {
             mFragmentList.add(fragment);
