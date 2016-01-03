@@ -7,7 +7,6 @@ import retrofit.Retrofit;
  * Created by ahmed on 12/22/15.
  */
 public interface Constants {
-    String API_KEY = "***REMOVED***";
     String BASE_URL = "http://api.themoviedb.org";
     String ARG_SORTING = "sorting";
 
