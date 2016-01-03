@@ -1,11 +1,11 @@
 package com.example.ahmed.popularmovies.retrofit;
 
 import com.example.ahmed.popularmovies.pojo.MovieReviews;
+import com.example.ahmed.popularmovies.utils.Constants;
 
 import retrofit.Call;
 import retrofit.http.GET;
 import retrofit.http.Path;
-import com.example.ahmed.popularmovies.utils.Constants;
 
 /**
  * Created by ahmed on 10/7/15.

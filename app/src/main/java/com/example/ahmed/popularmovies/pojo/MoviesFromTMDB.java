@@ -1,4 +1,3 @@
-
 package com.example.ahmed.popularmovies.pojo;
 
 import com.google.gson.annotations.Expose;

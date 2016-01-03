@@ -23,13 +23,8 @@ import com.squareup.picasso.Picasso;
 
 
 public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAdapter.ViewHolder> {
-    public interface Callback {
-        void onItemSelected(Uri movieUri, String movieName);
-    }
+    private final Context mContext;
 
-
-    Context mContext;
-    ViewHolder mVh;
 
     public CursorMovieAdapter(Context context, Cursor cursor) {
         super(context, cursor);
@@ -41,7 +36,6 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.movie_tiles, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
-        mVh = vh;
         return vh;
     }
 
@@ -78,9 +72,13 @@ public class CursorMovieAdapter extends CursorRecyclerViewAdapter<CursorMovieAda
                 (cursor.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
     }
 
+    public interface Callback {
+        void onItemSelected(Uri movieUri, String movieName);
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageView mImageview;
-        public CheckBox isFav;
+        public final ImageView mImageview;
+        public final CheckBox isFav;
 
         public ViewHolder(View view) {
             super(view);

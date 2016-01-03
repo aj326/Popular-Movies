@@ -1,4 +1,3 @@
-
 package com.example.ahmed.popularmovies.pojo;
 
 import com.google.gson.annotations.Expose;
@@ -29,90 +28,70 @@ public class MovieReviews {
     private Integer totalResults;
 
     /**
-     * 
-     * @return
-     *     The id
+     * @return The id
      */
     public Integer getId() {
         return id;
     }
 
     /**
-     * 
-     * @param id
-     *     The id
+     * @param id The id
      */
     public void setId(Integer id) {
         this.id = id;
     }
 
     /**
-     * 
-     * @return
-     *     The page
+     * @return The page
      */
     public Integer getPage() {
         return page;
     }
 
     /**
-     * 
-     * @param page
-     *     The page
+     * @param page The page
      */
     public void setPage(Integer page) {
         this.page = page;
     }
 
     /**
-     * 
-     * @return
-     *     The results
+     * @return The results
      */
     public List<Review> getReviews() {
         return results;
     }
 
     /**
-     * 
-     * @param results
-     *     The results
+     * @param results The results
      */
     public void setResults(List<Review> results) {
         this.results = results;
     }
 
     /**
-     * 
-     * @return
-     *     The totalPages
+     * @return The totalPages
      */
     public Integer getTotalPages() {
         return totalPages;
     }
 
     /**
-     * 
-     * @param totalPages
-     *     The total_pages
+     * @param totalPages The total_pages
      */
     public void setTotalPages(Integer totalPages) {
         this.totalPages = totalPages;
     }
 
     /**
-     * 
-     * @return
-     *     The totalResults
+     * @return The totalResults
      */
     public Integer getTotalResults() {
         return totalResults;
     }
 
     /**
-     * 
-     * @param totalResults
-     *     The total_results
+     * @param totalResults The total_results
      */
     public void setTotalResults(Integer totalResults) {
         this.totalResults = totalResults;
