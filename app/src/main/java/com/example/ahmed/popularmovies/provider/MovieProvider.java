@@ -87,7 +87,6 @@ public class MovieProvider extends ContentProvider {
     private static UriMatcher buildUriMatcher() {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MovieContract.CONTENT_AUTHORITY;
-
         //For debugging purposes
         matcher.addURI(authority, MovieContract.PATH_MOVIE,
                        MOVIE); //com.example.ahmed.popularmovies.data.MovieProvider/movie
@@ -95,16 +94,12 @@ public class MovieProvider extends ContentProvider {
                        REVIEW); //com.example.ahmed.popularmovies.data.MovieProvider/review
         matcher.addURI(authority, MovieContract.PATH_TRAILER,
                        TRAILER); //com.example.ahmed.popularmovies.data.MovieProvider/trailer
-
-
         matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#/",
                        MOVIE_WITH_ID); //com.example.ahmed.popularmovies.data.MovieProvider/movie/#
-
         //com.example.ahmed.popularmovies.data.MovieProvider/movie/#/review
         matcher.addURI(authority,
                        MovieContract.PATH_MOVIE + "/#/" + MovieContract.PATH_REVIEW,
                        MOVIE_WITH_REVIEW);
-
         //com.example.ahmed.popularmovies.data.MovieProvider/movie/#/trailer
         matcher.addURI(authority,
                        MovieContract.PATH_MOVIE + "/#/" + MovieContract.PATH_TRAILER,
@@ -169,7 +164,6 @@ public class MovieProvider extends ContentProvider {
                         sortOrder);
                 break;
             }
-
             case MOVIE_WITH_ID: {
                 retCursor = getMovieWithId(uri, projection, sortOrder);
                 break;
@@ -186,7 +180,6 @@ public class MovieProvider extends ContentProvider {
                         null, null, sortOrder);
                 break;
             }
-
             default:
                 throw new NullPointerException(
                         "Failed to query: " + uri.toString() + " " + selection);
@@ -220,7 +213,6 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.ReviewEntry.CONTENT_ITEM_TYPE;
             case MOVIE_WITH_TRAILER:
                 return MovieContract.TrailerEntry.CONTENT_ITEM_TYPE;
-
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -233,7 +225,6 @@ public class MovieProvider extends ContentProvider {
         Uri returnUri;
         long movie_id = values.getAsLong(
                 MovieContract.MovieEntry.COLUMN_MOVIE_ID);
-
         switch (match) {
             case MOVIE:
             case MOVIE_WITH_ID: {
@@ -268,7 +259,6 @@ public class MovieProvider extends ContentProvider {
                 }
                 break;
             }
-
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -281,7 +271,6 @@ public class MovieProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         int returnCount;
-
         switch (match) {
             case MOVIE:
             case MOVIE_WITH_ID:
@@ -302,7 +291,6 @@ public class MovieProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
-
             case REVIEW:
             case MOVIE_WITH_REVIEW:
                 db.beginTransaction();
@@ -343,8 +331,6 @@ public class MovieProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
-
-
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -375,7 +361,6 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.TrailerEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
-
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -392,7 +377,6 @@ public class MovieProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         int rowsUpdated;
-
         switch (match) {
             case MOVIE_WITH_ID: {
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values,

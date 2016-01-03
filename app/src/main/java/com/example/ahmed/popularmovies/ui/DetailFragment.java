@@ -51,6 +51,8 @@ import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.example.ahmed.popularmovies.utils.DynamicViewsCreator.createLabel;
+
 /**
  * Created by ahmed on 12/2/15.
  */
@@ -67,15 +69,14 @@ public class DetailFragment extends Fragment
     private ListView mReviewList;
     private SimpleCursorAdapter mReviewAdapter;
 
-    public DetailFragment() {
-//        setHasOptionsMenu(true);
-    }
+    public DetailFragment() {}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(Constants.DETAIL_URI);
+            //movieName is use in the sharing feature
             mMovieName = arguments.getString(Constants.MOVIE_NAME);
             mId = Long.parseLong(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
             reviewUri = MovieContract.MovieEntry.buildMovieIdWithReview(mId);
@@ -160,8 +161,8 @@ public class DetailFragment extends Fragment
                         if (cVVector.size() > 0) {
                             ContentValues[] cvArray = new ContentValues[cVVector.size()];
                             cVVector.toArray(cvArray);
-                            getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
-                            Log.d(LOG_TAG, "inserted trailer values: " + Arrays.toString(cvArray));
+                            (getActivity().getContentResolver()).bulkInsert(trailerUri, cvArray);
+                            Log.v(LOG_TAG, "inserted trailer values: " + Arrays.toString(cvArray));
                         } else {
                             Log.v(LOG_TAG, "no trailers found");
                         }
@@ -203,7 +204,7 @@ public class DetailFragment extends Fragment
                         }
                         ContentValues[] cvArray = new ContentValues[cVVector.size()];
                         cVVector.toArray(cvArray);
-                        getContext().getContentResolver().bulkInsert(reviewUri, cvArray);
+                        getActivity().getContentResolver().bulkInsert(reviewUri, cvArray);
                         Log.d(LOG_TAG, "inserted review values:");
 
                     }
@@ -339,11 +340,8 @@ public class DetailFragment extends Fragment
                     setHasOptionsMenu(true);
                 }
                 if (!hasLoaded) {
-                    TextView trailerLabel = new TextView(getContext());
-                    trailerLabel.setText(R.string.trailers_label);
-                    trailerLabel.setTextAppearance(getContext(),
-                                                   android.R.style.TextAppearance_Large);
-                    mHeader.addView(trailerLabel);
+                    mHeader.addView(createLabel(getContext(),R.string.trailers_label));
+                    //TODO this is so UGLY!!
                     do {
                         View icon = View.inflate(getContext(), R.layout.trailer_icon,
                                                  null).findViewById(R.id.list_item_trailer_icon);
@@ -376,11 +374,7 @@ public class DetailFragment extends Fragment
                         mHeader.addView(layout);
                     } while (data.moveToNext());
                     hasLoaded = true;
-                    TextView ReviewLabel = new TextView(getContext());
-                    ReviewLabel.setText(R.string.reviews_label);
-                    ReviewLabel.setTextAppearance(getContext(),
-                                                  android.R.style.TextAppearance_Large);
-                    mHeader.addView(ReviewLabel);
+                    mHeader.addView(createLabel(getContext(),R.string.reviews_label));
                 }
         }
     }

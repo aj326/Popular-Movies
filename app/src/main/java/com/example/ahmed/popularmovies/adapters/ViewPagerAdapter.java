@@ -19,43 +19,42 @@ import java.util.List;
 public class ViewPagerAdapter extends FragmentPagerAdapter {
     private final List<Fragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
+
+    public ViewPagerAdapter(FragmentManager manager) {
+        super(manager);
+    }
+
     public static void setupViewPager(AppCompatActivity activity, ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(
                 activity.getSupportFragmentManager());
-
-
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC"), "Popular");
-
-
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"), "Rating");
-
         adapter.addFragment(PopMovieGridFragment.newInstance("favorite"), "Favorite");
         viewPager.setAdapter(adapter);
     }
+
+    public void addFragment(Fragment fragment, String title) {
+        mFragmentList.add(fragment);
+        mFragmentTitleList.add(title);
+    }
+
     public static void setupViewPager(ToolbarFragment fragment, ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(
                 fragment.getChildFragmentManager());
-
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC"), "Popular");
-
         adapter.addFragment(PopMovieGridFragment.newInstance(
                 MovieContract.MovieEntry.COLUMN_SORT_BY_RATING + " DESC"), "Rating");
-
         adapter.addFragment(PopMovieGridFragment.newInstance("favorite"), "Favorite");
         viewPager.setAdapter(adapter);
-    }
-    public ViewPagerAdapter(FragmentManager manager) {
-        super(manager);
     }
 
     @Override
     public Fragment getItem(int position) {
         return mFragmentList.get(position);
     }
-
 
     @Override
     public int getCount() {
@@ -65,10 +64,5 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         return mFragmentTitleList.get(position);
-    }
-
-    public void addFragment(Fragment fragment, String title) {
-        mFragmentList.add(fragment);
-        mFragmentTitleList.add(title);
     }
 }

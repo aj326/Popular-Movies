@@ -30,8 +30,6 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
                         .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
                         .build());
         this.setContentView(R.layout.activity_main);
-
-
         if (findViewById(R.id.movie_detail_container) != null) {
             mTwoPane = true;
             if (savedInstanceState == null) {
@@ -52,8 +50,6 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
     }
 
 
-
-
     @Override
     public void onItemSelected(Uri movieUri, String movieName) {
         if (mTwoPane) {
@@ -63,10 +59,8 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
             Bundle args = new Bundle();
             args.putParcelable(Constants.DETAIL_URI, movieUri);
             args.putString(Constants.MOVIE_NAME, movieName);
-
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(args);
-
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.movie_detail_container, fragment, Constants.DETAILFRAGMENT_TAG)
                     .commit();

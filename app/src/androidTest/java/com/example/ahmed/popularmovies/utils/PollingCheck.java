@@ -38,11 +38,9 @@ public abstract class PollingCheck {
             if (condition.call()) {
                 return;
             }
-
             Thread.sleep(TIME_SLICE);
             timeout -= TIME_SLICE;
         }
-
         Assert.fail(message.toString());
     }
 
@@ -50,7 +48,6 @@ public abstract class PollingCheck {
         if (check()) {
             return;
         }
-
         long timeout = mTimeout;
         while (timeout > 0) {
             try {
@@ -58,14 +55,11 @@ public abstract class PollingCheck {
             } catch (InterruptedException e) {
                 Assert.fail("unexpected InterruptedException");
             }
-
             if (check()) {
                 return;
             }
-
             timeout -= TIME_SLICE;
         }
-
         Assert.fail("unexpected timeout");
     }
 
