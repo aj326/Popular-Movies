@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 /**
  * Written by sam_chordas on 8/11/15.
@@ -15,14 +14,12 @@ import android.util.Log;
 public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHolder>
         extends RecyclerView.Adapter<VH> {
     private static final String LOG_TAG = CursorRecyclerViewAdapter.class.getSimpleName();
-    private Context mContext;
+    private final DataSetObserver mDataSetObserver;
     private Cursor mCursor;
     private boolean mDataIsValid;
     private int mRowIdColumn;
-    private DataSetObserver mDataSetObserver;
 
-    public CursorRecyclerViewAdapter(Context context, Cursor cursor) {
-        mContext = context;
+    CursorRecyclerViewAdapter(Context context, Cursor cursor) {
         mCursor = cursor;
         mDataIsValid = cursor != null;
         mRowIdColumn = mDataIsValid ? mCursor.getColumnIndex("movie_id") : -1;
@@ -30,37 +27,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
         if (mDataIsValid) {
             mCursor.registerDataSetObserver(mDataSetObserver);
         }
-        Log.d(LOG_TAG, "in super"+ mDataIsValid);
     }
-
-
-    public Cursor getCursor() {
-        return mCursor;
-    }
-
-    @Override
-    public int getItemCount() {
-        if (mDataIsValid && mCursor != null) {
-            return mCursor.getCount();
-        }
-        Log.d(LOG_TAG,(mCursor!=null)+"mcursor is null");
-        return 0;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        if (mDataIsValid && mCursor != null && mCursor.moveToPosition(position)) {
-            return mCursor.getLong(mRowIdColumn);
-        }
-        return 0;
-    }
-
-    @Override
-    public void setHasStableIds(boolean hasStableIds) {
-        super.setHasStableIds(true);
-    }
-
-    public abstract void onBindViewHolder(VH viewHolder, Cursor cursor);
 
     @Override
     public void onBindViewHolder(VH viewHolder, int position) {
@@ -73,6 +40,29 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
 
         onBindViewHolder(viewHolder, mCursor);
     }
+
+    @Override
+    public void setHasStableIds(boolean hasStableIds) {
+        super.setHasStableIds(true);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        if (mDataIsValid && mCursor != null && mCursor.moveToPosition(position)) {
+            return mCursor.getLong(mRowIdColumn);
+        }
+        return 0;
+    }
+
+    @Override
+    public int getItemCount() {
+        if (mDataIsValid && mCursor != null) {
+            return mCursor.getCount();
+        }
+        return 0;
+    }
+
+    protected abstract void onBindViewHolder(VH viewHolder, Cursor cursor);
 
     public Cursor swapCursor(Cursor newCursor) {
         if (newCursor == mCursor) {
@@ -89,8 +79,6 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
             }
             mRowIdColumn = newCursor.getColumnIndexOrThrow("movie_id");
             mDataIsValid = true;
-            Log.d(LOG_TAG, "datachanged!");
-//            mCursor.registerDataSetObserver(mDataSetObserver);
             notifyDataSetChanged();
         } else {
             mRowIdColumn = -1;

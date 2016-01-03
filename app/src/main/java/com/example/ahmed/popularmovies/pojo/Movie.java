@@ -1,4 +1,3 @@
-
 package com.example.ahmed.popularmovies.pojo;
 
 import android.net.Uri;
@@ -10,7 +9,6 @@ import javax.annotation.Generated;
 
 @Generated("org.jsonschema2pojo")
 public class Movie {
-
 
 
     @SerializedName("id")
@@ -25,10 +23,10 @@ public class Movie {
     @SerializedName("release_date")
     @Expose
     private String releaseDate;
-//    runtime": 115,
-@SerializedName("runtime")
-@Expose
-private int runtime;
+    //    runtime": 115,
+    @SerializedName("runtime")
+    @Expose
+    private int runtime;
 
     @SerializedName("poster_path")
     @Expose
@@ -58,8 +56,6 @@ private int runtime;
     }
 
 
-
-
     /**
      * @return The overview
      */
@@ -71,11 +67,12 @@ private int runtime;
      * @return The releaseDate
      */
     public int getRuntime() {
-        return runtime;}
+        return runtime;
+    }
+
     public String getReleaseDate() {
         return releaseDate;
     }
-
 
 
     /**
@@ -101,17 +98,9 @@ private int runtime;
         return title;
     }
 
-
     /**
-     * @return The video
-     */
-//    public Boolean getVideo() {
-//        return video;
-//    }
-
-    /**
-
-    /**
+     * /**
+     *
      * @return The voteAverage
      */
     public Double getVoteAverage() {
@@ -125,8 +114,9 @@ private int runtime;
     public int getVoteCount() {
         return voteCount;
     }
-    public double getTrueRating(){
-        return voteCount*voteCount;
+
+    public double getTrueRating() {
+        return voteCount * voteAverage;
     }
 
     public String getImgUrl() {

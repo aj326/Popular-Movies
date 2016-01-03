@@ -2,14 +2,14 @@
 
 <ListView
     android:id="@+id/listview_reviews"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:dividerHeight="2dp"
-    android:headerDividersEnabled="false"
-    android:divider="@drawable/divider"
     android:layout_marginBottom="12dp"
     android:layout_marginLeft="@dimen/activity_vertical_margin"
     android:layout_marginRight="@dimen/activity_vertical_margin"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:divider="@drawable/divider"
+    android:dividerHeight="2dp"
+    android:headerDividersEnabled="false"
     />
 

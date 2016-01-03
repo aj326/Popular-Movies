@@ -19,4 +19,5 @@
     <string name="title_movie_detail">Movie Detail</string>
     <string name="trailers_label">Trailers</string>
     <string name="reviews_label">Reviews</string>
+    <string name="share_label">Share</string>
 </resources>

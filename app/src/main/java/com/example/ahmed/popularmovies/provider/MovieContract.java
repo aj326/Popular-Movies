@@ -17,14 +17,12 @@ public class MovieContract {
     // device.
     public static final String CONTENT_AUTHORITY =
             "com.example.ahmed.popularmovies.provider.MovieProvider";
-
-    // Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact
-    // the content provider.
-    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
-
     public static final String PATH_MOVIE = "movie";
     public static final String PATH_REVIEW = "review";
     public static final String PATH_TRAILER = "trailer";
+    // Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact
+    // the content provider.
+    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
     /* Inner class that defines the table contents of the movie table */
     public static final class MovieEntry implements BaseColumns {
@@ -55,30 +53,35 @@ public class MovieContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
 
 
-        public static final String COLUMN_SORT_BY_RATING = "sort_by_rating" ;
+        public static final String COLUMN_SORT_BY_RATING = "sort_by_rating";
 
         public static final String COLUMN_IS_FAVORITE = "is_favorite";
+
+        public static String getMovieIdFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
+
+        public static Uri buildMovieOnlyFavUri() {
+            return CONTENT_URI.buildUpon().
+                    appendQueryParameter(COLUMN_IS_FAVORITE, "1").build();
+        }
+
+        // .../movie/movie_id/review
+        public static Uri buildMovieIdWithReview(long movie_id) {
+            return buildMovieUri(movie_id).buildUpon().appendPath(PATH_REVIEW).build();
+        }
 
         // .../movie/movie_id
         public static Uri buildMovieUri(long movie_id) {
             return ContentUris.withAppendedId(CONTENT_URI, movie_id);
         }
-        public static String getMovieIdFromUri(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
-        public static Uri buildMovieOnlyFavUri() {
-            return CONTENT_URI.buildUpon().
-                    appendQueryParameter(COLUMN_IS_FAVORITE, "1").build();
-        }
-        // .../movie/movie_id/review
-        public static Uri buildMovieIdWithReview(long movie_id) {
-            return buildMovieUri(movie_id).buildUpon().appendPath(PATH_REVIEW).build();
-        }
+
         // .../movie/movie_id/trailer
         public static Uri buildMovieIdWithTrailer(long movie_id) {
             return buildMovieUri(movie_id).buildUpon().appendPath(PATH_TRAILER).build();
         }
     }
+
     /* Inner class that defines the table contents of the trailer table */
     public static final class TrailerEntry implements BaseColumns {
 
@@ -98,9 +101,6 @@ public class MovieContract {
         public static final String COLUMN_URL = "url";
         public static final String COLUMN_TRAILER_NAME = "name";
 
-//        public static Uri buildTrailerUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_URI, id);
-//        }
     }
 
     /* Inner class that defines the table contents of the reviews table */
@@ -123,9 +123,6 @@ public class MovieContract {
 
         public static final String COLUMN_CONTENT = "content";
 
-//        public static Uri buildReviewUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_URI, id);
-//        }
 
     }
 

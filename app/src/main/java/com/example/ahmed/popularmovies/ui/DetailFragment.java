@@ -1,4 +1,5 @@
 package com.example.ahmed.popularmovies.ui;
+
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -6,7 +7,6 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -32,7 +32,6 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.example.ahmed.popularmovies.R;
-import com.example.ahmed.popularmovies.adapters.CursorTrailerAdapter;
 import com.example.ahmed.popularmovies.pojo.MovieReviews;
 import com.example.ahmed.popularmovies.pojo.MovieVideos;
 import com.example.ahmed.popularmovies.pojo.Review;
@@ -41,18 +40,14 @@ import com.example.ahmed.popularmovies.provider.MovieContract;
 import com.example.ahmed.popularmovies.retrofit.ReviewsFetchService;
 import com.example.ahmed.popularmovies.retrofit.TrailersFetchService;
 import com.example.ahmed.popularmovies.utils.Constants;
-import com.squareup.okhttp.ResponseBody;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
 import retrofit.Call;
 import retrofit.Callback;
-import retrofit.Converter;
 import retrofit.Response;
 import retrofit.Retrofit;
 
@@ -62,19 +57,19 @@ import retrofit.Retrofit;
 public class DetailFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
-
+    private final String LOG_TAG = DetailFragment.class.getSimpleName();
     private Uri mUri, reviewUri, trailerUri;
     private boolean hasLoaded;
-    private ViewGroup mTrailerViews;
     private String mShareTrailer;
     private String mMovieName;
     private ViewGroup mHeader;
     private long mId;
-    private CheckBox isFav;
-    String LOG_TAG = DetailFragment.class.getSimpleName();
-
-    //    private CursorDetailAdapter mCursorDetailAdapter;
     private ListView mReviewList;
+    private SimpleCursorAdapter mReviewAdapter;
+
+    public DetailFragment() {
+//        setHasOptionsMenu(true);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,64 +88,62 @@ public class DetailFragment extends Fragment
         super.onCreate(savedInstanceState);
     }
 
-    private LinearLayout mTrailerList;
-    private SimpleCursorAdapter mReviewAdapter;
-    private CursorTrailerAdapter mTrailerAdapter;
-
-    public DetailFragment() {
-//        setHasOptionsMenu(true);
+    @Override
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        mHeader = (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
+                                                  mReviewList,
+                                                  false);
+        Toolbar toolbar = (Toolbar) mHeader.findViewById(R.id.detail_toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(
+                true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
+        mReviewList = (ListView) View.inflate(getContext(), R.layout.listview_review, null);
+        mReviewList.addHeaderView(mHeader);
+        mHeader = (LinearLayout) mHeader.findViewById(R.id.fragment_detail_header_layout_container);
+        String[] columns = new String[]{
+                MovieContract.ReviewEntry.COLUMN_AUTHOR,
+                MovieContract.ReviewEntry.COLUMN_CONTENT
+        };
+        int[] to = new int[]{
+                R.id.list_item_review_author,
+                R.id.list_item_review_content
+        };
+        mReviewAdapter = new SimpleCursorAdapter(getContext(), R.layout.list_item_review,
+                                                 null, columns, to, 0);
+        mReviewList.setAdapter(mReviewAdapter);
+        Log.d(LOG_TAG, "set up mReviewList");
+        return mReviewList;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-//        mReviewHash = new HashMap<String, String>();
         super.onActivityCreated(savedInstanceState);
-        insertTrailers();
-
-
-        insertReviews();
         getLoaderManager().initLoader(Constants.DETAIL_LOADER, null, this);
         getLoaderManager().initLoader(Constants.TRAILER_LOADER, null, this);
         getLoaderManager().initLoader(Constants.REVIEW_LOADER, null, this);
-
-
-
-
-
+        insertTrailers();
+        insertReviews();
 
 
     }
 
     private void insertTrailers() {
-        final ArrayList<String> trailers = new ArrayList<>();
         final TrailersFetchService trailersFetchService = Constants.retrofit.create(
                 TrailersFetchService.class);
-
         Call<MovieVideos> call = trailersFetchService.trailerList(mId);
-
-
         Log.d(LOG_TAG, "enqueuing trailers call");
         call.enqueue(new Callback<MovieVideos>() {
             @Override
             public void onResponse(Response<MovieVideos> response, Retrofit retrofit) {
-                if (response != null && !response.isSuccess() && response.errorBody() != null) {
-                    Converter<ResponseBody, MovieVideos> errorConverter =
-                            retrofit.responseConverter(MovieVideos.class, new Annotation[0]);
-                    try {
-                        MovieVideos error = errorConverter.convert(response.errorBody());
-                        Log.e("response", error.toString());
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
                 if (response.body() != null) {
                     MovieVideos movieVideos = response.body();
-
                     List<Video> videos = movieVideos.getVideos();
                     int numberOfVideos = videos.size();
-                    Vector<ContentValues> cVVector = new Vector<ContentValues>(numberOfVideos);
-
+                    Vector<ContentValues> cVVector = new Vector<>(numberOfVideos);
                     if (numberOfVideos > 0) {
                         for (Video video : videos) {
                             if (video.getType().equals("Trailer") && video.getSite().equals(
@@ -168,7 +161,7 @@ public class DetailFragment extends Fragment
                             ContentValues[] cvArray = new ContentValues[cVVector.size()];
                             cVVector.toArray(cvArray);
                             getContext().getContentResolver().bulkInsert(trailerUri, cvArray);
-                            Log.d(LOG_TAG, "inserted trailer values: " + cvArray.toString());
+                            Log.d(LOG_TAG, "inserted trailer values: " + Arrays.toString(cvArray));
                         } else {
                             Log.v(LOG_TAG, "no trailers found");
                         }
@@ -179,36 +172,19 @@ public class DetailFragment extends Fragment
 
             @Override
             public void onFailure(Throwable t) {
-
-
             }
         });
     }
 
     private void insertReviews() {
-        final ArrayList<List<String>> cleanedUpReviews = new ArrayList<>();
-
         final ReviewsFetchService reviewsFetchService = Constants.retrofit.create(
                 ReviewsFetchService.class);
         Call<MovieReviews> call = reviewsFetchService.reviewsList(
                 mId);
-
-
         Log.d(LOG_TAG, "enqueuing reviews call");
         call.enqueue(new Callback<MovieReviews>() {
             @Override
             public void onResponse(Response<MovieReviews> response, Retrofit retrofit) {
-                if (response != null && !response.isSuccess() && response.errorBody() != null) {
-                    Converter<ResponseBody, MovieReviews> errorConverter =
-                            retrofit.responseConverter(MovieReviews.class, new Annotation[0]);
-                    try {
-                        MovieReviews error = errorConverter.convert(response.errorBody());
-                        Log.e("response", error.toString());
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
                 if (response.body() != null) {
                     MovieReviews movieReviews = response.body();
                     List<Review> reviews = movieReviews.getReviews();
@@ -225,11 +201,9 @@ public class DetailFragment extends Fragment
                             value.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, mId);
                             cVVector.add(value);
                         }
-
                         ContentValues[] cvArray = new ContentValues[cVVector.size()];
                         cVVector.toArray(cvArray);
                         getContext().getContentResolver().bulkInsert(reviewUri, cvArray);
-
                         Log.d(LOG_TAG, "inserted review values:");
 
                     }
@@ -241,23 +215,41 @@ public class DetailFragment extends Fragment
 
             @Override
             public void onFailure(Throwable t) {
-
-
             }
         });
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        Log.d(LOG_TAG, "onCreateOptionsMenu" + mMovieName);
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.detailfragment, menu);
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.menu_item_share);
+        // Get the provider and hold onto it to set/change the share intent.
+        ShareActionProvider mShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        // Attach an intent to this ShareActionProvider.  You can update this at any time,
+        // like when the user selects a new piece of data they might like to share.
+        if (mShareActionProvider != null) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT,
+                                 mMovieName + "—" + mShareTrailer + " " + Constants.HASHTAG_PROJECT);
+            mShareActionProvider.setShareIntent(shareIntent);
+        }
     }
 
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.v(LOG_TAG, "In onCreateLoader");
         if (mUri == null) {
             return null;
         }
         Uri uri;
         String projection[];
-
-
         switch (id) {
             case Constants.DETAIL_LOADER: {
                 uri = mUri;
@@ -296,23 +288,15 @@ public class DetailFragment extends Fragment
         );
     }
 
-    //TODO use a viewholder for views here? Generic class for both views
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-//        Log.d(LOG_TAG,reviewUri+" "+MovieContract.MovieEntry.TABLE_NAME+"."+ MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?"+mId+ DatabaseUtils.dumpCursorToString(data));
-        Log.v(LOG_TAG, "In onLoadFinished");
         if (!data.moveToFirst()) {
             Log.d(LOG_TAG, "false");
             return;
         }
-
         Log.d(LOG_TAG,
               reviewUri + " " + MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_MOVIE_ID + "=? " + Long.toString(
                       mId) + DatabaseUtils.dumpCursorToString(data));
-
-//        data.()
-
         switch (loader.getId()) {
             case Constants.DETAIL_LOADER:
                 ImageView poster = (ImageView) getView().findViewById(R.id.poster);
@@ -320,24 +304,16 @@ public class DetailFragment extends Fragment
                         data.getString(Constants.DETAIL_COLUMNS.POSTER.ordinal())).resizeDimen(
                         R.dimen.img_width, R.dimen.img_height)
                         .into(poster);
-
-//                TextView title = (TextView) getView().findViewById(R.id.movie_title);
-//                title.setText(data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
                 ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(
-                        data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()) );
+                        data.getString(Constants.DETAIL_COLUMNS.TITLE.ordinal()));
                 TextView release_date = (TextView) getView().findViewById(R.id.movie_year);
                 release_date.setText(
                         data.getString(Constants.DETAIL_COLUMNS.RELEASE_DATE.ordinal()));
-
                 TextView plot = (TextView) getView().findViewById(R.id.plot);
                 plot.setText(data.getString(Constants.DETAIL_COLUMNS.PLOT.ordinal()));
-
                 TextView rating = (TextView) getView().findViewById(R.id.rating);
                 rating.setText(data.getString(Constants.DETAIL_COLUMNS.RATING.ordinal()));
-
-
-//        values.put(MovieColumns.IS_FAVORITE, isFav.isChecked() ? 1 : 0);
-                isFav = (CheckBox) getView().findViewById(R.id.star);
+                CheckBox isFav = (CheckBox) getView().findViewById(R.id.star);
                 isFav.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -351,21 +327,23 @@ public class DetailFragment extends Fragment
                 isFav.setChecked(
                         (data.getInt(Constants.DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1));
                 return;
-
             case Constants.REVIEW_LOADER:
-                Log.v(LOG_TAG, "Review Loader");
                 mReviewAdapter.changeCursor(data);
                 return;
-
             case Constants.TRAILER_LOADER:
-                Log.v(LOG_TAG, "Trailer Loader");
                 if (mShareTrailer == null) {
-                    mShareTrailer = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal())+": http://www.youtube.com/watch?v="
+                    mShareTrailer = data.getString(
+                            Constants.TRAILER_COLUMNS.NAME.ordinal()) + ": http://www.youtube.com/watch?v="
                                     +
                                     data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
                     setHasOptionsMenu(true);
                 }
                 if (!hasLoaded) {
+                    TextView trailerLabel = new TextView(getContext());
+                    trailerLabel.setText(R.string.trailers_label);
+                    trailerLabel.setTextAppearance(getContext(),
+                                                   android.R.style.TextAppearance_Large);
+                    mHeader.addView(trailerLabel);
                     do {
                         View icon = View.inflate(getContext(), R.layout.trailer_icon,
                                                  null).findViewById(R.id.list_item_trailer_icon);
@@ -376,20 +354,16 @@ public class DetailFragment extends Fragment
                         LinearLayout layout = (LinearLayout) View.inflate(getContext(),
                                                                           R.layout.layout_trailers,
                                                                           null);
-
                         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.WRAP_CONTENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT);
                         layoutParams.setMargins(35, 0, 25, 0);
                         layoutParams.gravity = Gravity.CENTER_VERTICAL;
-
                         String index = data.getString(Constants.TRAILER_COLUMNS.NAME.ordinal());
                         String url = data.getString(Constants.TRAILER_COLUMNS.URL.ordinal());
-
                         name.setText(index);
-                        icon.setTag(url);
-
-                        icon.setOnClickListener(new View.OnClickListener() {
+                        layout.setTag(url);
+                        layout.setOnClickListener(new View.OnClickListener() {
 
                             @Override
                             public void onClick(View v) {
@@ -397,7 +371,6 @@ public class DetailFragment extends Fragment
                                         "http://www.youtube.com/watch?v=" + v.getTag())));
                             }
                         });
-                        Log.d(LOG_TAG, "populating listview");
                         layout.addView(icon, layoutParams);
                         layout.addView(name, layoutParams);
                         mHeader.addView(layout);
@@ -412,142 +385,10 @@ public class DetailFragment extends Fragment
         }
     }
 
-
-//        if (data.getInt(DETAIL_COLUMNS.IS_FAVORITE.ordinal()) == 1) {
-//            Log.d("isFav", starred.isChecked() + "");
-//            starred.setChecked(true);
-//            starred.setButtonDrawable(android.R.drawable.btn_star_big_on);
-//        }
-    // If onCreateOptionsMenu has already happened, we need to update the share intent now.
-
-
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mReviewAdapter.swapCursor(null);
 
-    }
-
-
-    @Override
-    public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-//        LinearLayout rootview= (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
-//                                                                   container,
-//                                                               false);
-
-        mHeader = (CoordinatorLayout) inflater.inflate(R.layout.fragment_detail_header,
-                                                       mReviewList,
-                                                       false);
-        Toolbar toolbar = (Toolbar) mHeader.findViewById(R.id.detail_toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(
-                true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
-//        toolbar.inflateMenu(R.menu.detailfragment);
-//        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-//            @Override
-//            public boolean onMenuItemClick(MenuItem item) {
-//                Log.d(LOG_TAG,"invoked share click");
-//
-//                switch (item.getItemId()){
-//                    case R.id.menu_item_share:
-//                        ShareActionProvider mShareActionProvider =
-//                                (ShareActionProvider) MenuItemCompat.getActionProvider(item);
-//                        if(mShareActionProvider!=null) {Log.d(LOG_TAG,"provider not null");}
-//                        Toast.makeText(getContext(), "Share", Toast.LENGTH_SHORT).show();
-//                        return true;
-//                }
-//
-//                return false;
-//            }
-////                ShareActionProvider mShareActionProvider =
-////                        (ShareActionProvider) MenuItemCompat.getActionProvider(item);
-////
-////                // Attach an intent to this ShareActionProvider.  You can update this at any time,
-////                // like when the user selects a new piece of data they might like to share.
-////                if (mShareActionProvider != null) {
-////                    Log.d(LOG_TAG,"share action provider is not null");
-////
-////                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-////                    shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-////
-////                    shareIntent.setType("text/plain");
-////                    shareIntent.putExtra(Intent.EXTRA_TEXT, mShareTrailer + "#PopularMovies");
-////                    mShareActionProvider.setShareIntent(shareIntent);
-////                    return true;
-////                }
-////                return true;
-////            }
-//        });
-
-//        View rootview = View.inflate(getContext(), R.layout.fragment_detail_header, mReviewList);
-        mReviewList = (ListView) inflater.inflate(R.layout.listview_review, null, false);
-
-        mReviewList.addHeaderView(mHeader);
-        mHeader = (LinearLayout) mHeader.findViewById(R.id.fragment_detail_header_layout_container);
-//        mTrailerList.addFooterView(mReviewList);
-//        mReviewList.addHeaderView(header);
-//        mReviewList.addFooterView(mTrailerList);
-
-
-//        mTrailerAdapter = new ArrayAdapter<String>(getContext(),R.layout.list_item_trailer,)
-
-
-        String[] columns = new String[]{
-                MovieContract.ReviewEntry.COLUMN_AUTHOR,
-                MovieContract.ReviewEntry.COLUMN_CONTENT
-        };
-        int[] to = new int[]{
-                R.id.list_item_review_author,
-                R.id.list_item_review_content
-        };
-        mReviewAdapter = new SimpleCursorAdapter(getContext(), R.layout.list_item_review,
-                                                 null, columns, to, 0);
-        mTrailerAdapter = new CursorTrailerAdapter(getContext(), null, 0);
-
-        mReviewList.setAdapter(mReviewAdapter);
-//        mTrailerList.setAdapter(mTrailerAdapter);
-//        LinearLayout myContainer = (LinearLayout) rootview.findViewById(R.id.reviews_container);
-//                myContainer.addView(mReviewList);
-
-
-//        mCursorReviewAdapter = new CursorReviewAdapter(getContext(),null);
-        Log.d(LOG_TAG, "set up mReviewList");
-
-
-        return mReviewList;
-    }
-
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        Log.d(LOG_TAG,"onCreateOptionsMenu" + mMovieName);
-
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.detailfragment, menu);
-
-        // Retrieve the share menu item
-        MenuItem menuItem = menu.findItem(R.id.menu_item_share);
-
-        // Get the provider and hold onto it to set/change the share intent.
-        ShareActionProvider mShareActionProvider =
-                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
-
-        // Attach an intent to this ShareActionProvider.  You can update this at any time,
-        // like when the user selects a new piece of data they might like to share.
-        if (mShareActionProvider != null) {
-            Log.d(LOG_TAG, "onCreateOptionsMenu Share Action Provider");
-
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, mMovieName + "—" + mShareTrailer + " " + Constants.HASHTAG_PROJECT);
-            mShareActionProvider.setShareIntent(shareIntent);
-        }
     }
 
 }
