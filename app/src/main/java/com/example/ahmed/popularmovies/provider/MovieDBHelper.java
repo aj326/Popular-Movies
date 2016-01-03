@@ -4,7 +4,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import static com.example.ahmed.popularmovies.provider.MovieContract.*;
+import static com.example.ahmed.popularmovies.provider.MovieContract.MovieEntry;
+import static com.example.ahmed.popularmovies.provider.MovieContract.ReviewEntry;
+import static com.example.ahmed.popularmovies.provider.MovieContract.TrailerEntry;
 
 /**
  * Created by ahmed on 12/9/15.
@@ -29,8 +31,6 @@ class MovieDBHelper extends SQLiteOpenHelper {
                                                ReviewEntry.COLUMN_CONTENT + " TEXT UNIQUE, " +
                                                " FOREIGN KEY (" + ReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
                                                MovieEntry.TABLE_NAME + " (" + MovieEntry.COLUMN_MOVIE_ID + "));";
-
-
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " (" +
                                                 TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                                 TrailerEntry.COLUMN_MOVIE_ID + " INTEGER, " +
@@ -38,10 +38,7 @@ class MovieDBHelper extends SQLiteOpenHelper {
                                                 TrailerEntry.COLUMN_URL + " TEXT UNIQUE, " +
                                                 " FOREIGN KEY (" + TrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
                                                 MovieEntry.TABLE_NAME + " (" + MovieEntry.COLUMN_MOVIE_ID + "));";
-
-
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + " (" +
-
                                               MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                                               MovieEntry.COLUMN_MOVIE_ID + " INTEGER UNIQUE NOT NULL, " +
                                               MovieEntry.COLUMN_TITLE + " TEXT UNIQUE NOT NULL, " +
@@ -52,16 +49,12 @@ class MovieDBHelper extends SQLiteOpenHelper {
                                               MovieEntry.COLUMN_RATING + " REAL NOT NULL, " +
                                               MovieEntry.COLUMN_SORT_BY_RATING + " REAL NOT NULL, " +
                                               MovieEntry.COLUMN_IS_FAVORITE + " INTEGER NOT NULL );";
-
-
 //                                                // Set up the location column as a foreign key to location table.
 //                                                " FOREIGN KEY (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
 //                                                MovieContract.ReviewEntry.TABLE_NAME + " (" + MovieContract.ReviewEntry._ID + "), " +
-
         // To assure the application have just one weather entry per day
         // per location, it's created a UNIQUE constraint with REPLACE strategy
 //                                                " UNIQUE (" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE);";
-
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_TRAILER_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE);

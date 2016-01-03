@@ -46,14 +46,10 @@ public class PopMovieGridFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
 
-    //     ProgressDialog progressDialog = new ProgressDialog();
     private final String LOG_TAG = PopMovieGridFragment.class.getSimpleName();
-    //    ProgressDialog  mProgressDialog;
     private CursorMovieAdapter mMoviesAdapter;
-//    private boolean isFav = getSupportFragmentManager().findFragmentByTag()
 
 
-    //    private static final String ARG_SELECTION = "ARG_SELECTION";
     private String mSorting;
     private Bundle mBundle;
     private SwipeRefreshLayout swipeContainer;
@@ -69,12 +65,6 @@ public class PopMovieGridFragment extends Fragment
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-//        if(mSorting!=null)
-//        Log.d(LOG_TAG,"Args: "+mSorting+" ");
-
-//        else Log.d(LOG_TAG,"All is null!");
-//        if(args!=null){
-//        selection = args.getString(ARG_SELECTION);
         if (args != null) {
             mSorting = args.getString(Constants.ARG_SORTING);
         }
@@ -82,8 +72,7 @@ public class PopMovieGridFragment extends Fragment
         Log.d(LOG_TAG, "onCreateLoader(): " + mSorting + selection);
         if (mSorting != null && mSorting.equals("favorite")) {
             Log.d(LOG_TAG, "onCreateLoader(): favorites ");
-//            mRecyclerView.swapAdapter(null,true);
-//mMoviesAdapter.notifyItemRangeRemoved(0,mMoviesAdapter.getItemCount());
+
             return new CursorLoader(getActivity(), MovieContract.MovieEntry.CONTENT_URI,
                                     null,
                                     MovieContract.MovieEntry.COLUMN_IS_FAVORITE + "=? ",
@@ -96,28 +85,6 @@ public class PopMovieGridFragment extends Fragment
                                 null,
                                 mSorting);
     }
-
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        Log.d(LOG_TAG, "resume called");
-////        if(getArguments()!=null){
-//////         mSorting =getArguments().getString(ARG_SORTING);
-////
-////        }
-////            if (mSorting == null){
-////                mSelection=MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_IS_FAVORITE + "=? ";
-////                mSelectionArg = new String[]{"1"};
-////            }
-////
-//////            Log.d(LOG_TAG, mSorting);
-////
-////        }
-//        mArgs = new Bundle(getArguments());
-//        getLoaderManager().restartLoader(Constants.CURSOR_LOADER_ID, mArgs, this);
-//
-//    }
-
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 //        DatabaseUtils.dumpCursor(data);
@@ -136,18 +103,15 @@ public class PopMovieGridFragment extends Fragment
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_movies);
         swipeContainer = (SwipeRefreshLayout) rootView.findViewById(
                 R.id.swipe_container);
-
         recyclerView.setLayoutManager(
                 new GridLayoutManager(recyclerView.getContext(), 2));
         this.mMoviesAdapter =
                 new CursorMovieAdapter(
                         getActivity(), // The current context (this activity)
                         null);
-
         recyclerView.setAdapter(this.mMoviesAdapter);
         return rootView;
     }
@@ -168,24 +132,17 @@ public class PopMovieGridFragment extends Fragment
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
             @Override
-
             public void onRefresh() {
                 insertData(false);
 
             }
 
         });
-
         // Configure the refreshing colors
         swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-
                                                android.R.color.holo_green_light,
-
                                                android.R.color.holo_orange_light,
-
                                                android.R.color.holo_red_light);
-
-
         Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                                                             null, null, null, null);
         assert c != null;
@@ -203,56 +160,51 @@ public class PopMovieGridFragment extends Fragment
         final int MAX_PAGES = 6;
         Constants.retrofit.client().networkInterceptors().add(new StethoInterceptor());
         DetailsFetchService service = Constants.retrofit.create(DetailsFetchService.class);
-
-
         for (int i = 1; i < MAX_PAGES; i++) {
             final ProgressDialog progressDialog = ProgressDialog.show(getContext(),
                                                                       "Fetching Movies",
                                                                       "Please wait...", false,
                                                                       true);
             Call<MoviesFromTMDB> call = service.movieList(i);
-
             call.enqueue(new Callback<MoviesFromTMDB>() {
 
                 @Override
                 public void onResponse(Response<MoviesFromTMDB> response, Retrofit retrofit) {
-                        progressDialog.dismiss();
-                        MoviesFromTMDB moviesFromTMDB = response.body();
-                        List<Movie> movies = moviesFromTMDB.getMovies();
-                        Log.d("page: ", moviesFromTMDB.getPage().toString());
-                        ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(
-                                moviesFromTMDB.getMovies().size());
-                        for (Movie movie : movies) {
-                            Builder builder = ContentProviderOperation.newInsert(
-                                    MovieContract.MovieEntry.CONTENT_URI);
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_TITLE,
-                                              movie.getTitle());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_POPULARITY,
-                                              movie.getPopularity());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_RATING,
-                                              movie.getVoteAverage());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_SORT_BY_RATING,
-                                              movie.getTrueRating());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_RELEASE_DATE,
-                                              movie.getReleaseDate());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_PLOT,
-                                              movie.getOverview());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_POSTER,
-                                              movie.getImgUrl());
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
-
-                            builder.withValue(MovieContract.MovieEntry.COLUMN_MOVIE_ID,
-                                              movie.getId());
-                            batchOperations.add(builder.build());
-                        }
-
-                        try {
-                            getActivity().getContentResolver().applyBatch(
-                                    MovieContract.CONTENT_AUTHORITY,
-                                    batchOperations);
-                        } catch (RemoteException | OperationApplicationException e) {
-                            Log.e(LOG_TAG, "Error applying batch insert", e);
-                        }
+                    progressDialog.dismiss();
+                    MoviesFromTMDB moviesFromTMDB = response.body();
+                    List<Movie> movies = moviesFromTMDB.getMovies();
+                    Log.d("page: ", moviesFromTMDB.getPage().toString());
+                    ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(
+                            moviesFromTMDB.getMovies().size());
+                    for (Movie movie : movies) {
+                        Builder builder = ContentProviderOperation.newInsert(
+                                MovieContract.MovieEntry.CONTENT_URI);
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_TITLE,
+                                          movie.getTitle());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_POPULARITY,
+                                          movie.getPopularity());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_RATING,
+                                          movie.getVoteAverage());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_SORT_BY_RATING,
+                                          movie.getTrueRating());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_RELEASE_DATE,
+                                          movie.getReleaseDate());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_PLOT,
+                                          movie.getOverview());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_POSTER,
+                                          movie.getImgUrl());
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
+                        builder.withValue(MovieContract.MovieEntry.COLUMN_MOVIE_ID,
+                                          movie.getId());
+                        batchOperations.add(builder.build());
+                    }
+                    try {
+                        getActivity().getContentResolver().applyBatch(
+                                MovieContract.CONTENT_AUTHORITY,
+                                batchOperations);
+                    } catch (RemoteException | OperationApplicationException e) {
+                        Log.e(LOG_TAG, "Error applying batch insert", e);
+                    }
                     if (!isFirstTime) {
                         swipeContainer.setRefreshing(false);
                     }
