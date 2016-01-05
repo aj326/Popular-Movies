@@ -20,7 +20,6 @@ public class DynamicViewsCreator {
         }
         else
             textView.setTextAppearance(context, TextAppearance_Large);
-
         return textView;
     }
 }

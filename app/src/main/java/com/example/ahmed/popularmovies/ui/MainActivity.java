@@ -49,8 +49,6 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
         }
 
     }
-
-
     @Override
     public void onItemSelected(Uri movieUri, String movieName) {
         if (mTwoPane) {
@@ -74,3 +72,4 @@ public class MainActivity extends AppCompatActivity implements CursorMovieAdapte
     }
 
 }
+
