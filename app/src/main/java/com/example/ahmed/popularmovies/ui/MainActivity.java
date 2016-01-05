@@ -18,6 +18,7 @@ import static com.example.ahmed.popularmovies.adapters.ViewPagerAdapter.setupVie
 public class MainActivity extends AppCompatActivity implements CursorMovieAdapter.Callback {
 //TODO use butterkinfe for binding views
 // TODO: 1/5/16 load once for queries in detail view?
+// TODO: 1/5/16 remove coord layout in detail frag, fix stickiness of toolbar
 
     private static boolean mTwoPane;
 
