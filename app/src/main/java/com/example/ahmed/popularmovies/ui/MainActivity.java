@@ -16,7 +16,8 @@ import com.facebook.stetho.Stetho;
 import static com.example.ahmed.popularmovies.adapters.ViewPagerAdapter.setupViewPager;
 
 public class MainActivity extends AppCompatActivity implements CursorMovieAdapter.Callback {
-
+//TODO use butterkinfe for binding views
+// TODO: 1/5/16 load once for queries in detail view?
 
     private static boolean mTwoPane;
 
