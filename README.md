@@ -1,4 +1,4 @@
-# Popular-Movies
+# Popular Movies
 Udacity Popular Movies App
 
 ## Synopsis
