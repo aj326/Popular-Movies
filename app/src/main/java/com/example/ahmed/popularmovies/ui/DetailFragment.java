@@ -96,6 +96,7 @@ public class DetailFragment extends Fragment
         mHeader = (LinearLayout) inflater.inflate(R.layout.fragment_detail_header,
                                                   mReviewList,
                                                   false);
+        //TODO make toolbar scroll with fragment
         Toolbar toolbar = (Toolbar) mHeader.findViewById(R.id.detail_toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(
