@@ -2,9 +2,14 @@
 Udacity Popular Movies App
 
 ## Synopsis
+App that pulls popular movies data from the [web](http://themoviedb.org).
+
+## Features
+**Backend** SQLite, Content Providers, Android Testing, 3rd Party APIs
 
 
-App that pulls popular movies data from the [web](http://themoviedb.org). 
+**Frontend** Tabs, RecyclerView with a cursor, Pull to refresh, Favorites Tab, Caching of data
+
 
 ## Installation
 
