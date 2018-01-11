@@ -1,5 +1,7 @@
 package com.example.ahmed.popularmovies.utils;
 
+import com.example.ahmed.popularmovies.BuildConfig;
+
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
 
@@ -7,6 +9,7 @@ import retrofit.Retrofit;
  * Created by ahmed on 12/22/15.
  */
 public interface Constants {
+    String API_KEY = BuildConfig.MY_MOVIE_DB_API_KEY;
     String BASE_URL = "http://api.themoviedb.org";
     String ARG_SORTING = "sorting";
 

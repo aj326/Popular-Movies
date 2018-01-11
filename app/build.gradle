@@ -2,10 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'android-apt'
 
 
+
+
 android {
     compileSdkVersion 23
     buildToolsVersion '26.0.2'
-
+    buildTypes.each{
+        it.buildConfigField 'String', 'MY_MOVIE_DB_API_KEY', TheMovieDBAPI
+    }
     defaultConfig {
         applicationId "com.example.ahmed.popularmovies"
         minSdkVersion 16
